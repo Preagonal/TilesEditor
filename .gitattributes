@@ -1,2 +1,4 @@
 * test eol=lf
 release.zip binary
+*.png binary
+*.jpg binary
