@@ -42,6 +42,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./ResourceType.h \
     ./MainWindow.h \
     ./AboutDialog.h \
+    ./rc/RCConnectDialog.h \
     ./TilesetsWidget.h \
     ./EditAnonymousNPC.h \
     ./EditLinkDialog.h \
@@ -69,6 +70,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorPopup.hpp \
     ./ScreenshotDialog.h
 SOURCES += ./AboutDialog.cpp \
+    ./rc/RCConnectDialog.cpp \
     ./AbstractLevelEntity.cpp \
     ./AbstractSelection.cpp \
     ./EditAnonymousNPC.cpp \
@@ -118,6 +120,7 @@ SOURCES += ./AboutDialog.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp \
     ./ScreenshotDialog.cpp
 FORMS += ./AboutDialog.ui \
+    ./rc/RCConnectDialog.ui \
     ./EditAnonymousNPC.ui \
     ./EditExternalNPC.ui \
     ./EditLinkDialog.ui \

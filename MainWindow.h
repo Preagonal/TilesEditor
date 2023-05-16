@@ -20,7 +20,8 @@ namespace TilesEditor
         void changeTabText(const QString& text);
         void setStatusText(const QString& text, int section, int msecs);
         void tabChanged(int index);
-        void aboutClicked(bool checked);
+        static void aboutClicked(bool checked);
+        static void rcClicked(bool checked);
         void closeTabIndexSlot(int index);
 
     public:
@@ -30,7 +31,7 @@ namespace TilesEditor
         void openLevelFilename(const QString& fileName);
 
     private:
-        Ui::MainWindowClass ui;
+        Ui::MainWindowClass ui{};
 
         ResourceManager m_resourceManager;
         QStringListModel m_tilesetList;

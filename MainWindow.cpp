@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "EditorTabWidget.h"
 #include "AboutDialog.h"
+#include "RCConnectDialog.h"
 #include "cJSON/JsonHelper.h"
 #include "EditAnonymousNPC.h"
 
@@ -45,22 +46,20 @@ namespace TilesEditor
         m_resourceManager.addSearchDirRecursive("./levels/");
         m_resourceManager.addSearchDirRecursive("./world/");
 
-
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::openFile);
         connect(ui.actionNew, &QAction::triggered, this, &MainWindow::newLevel);
         connect(ui.actionAbout, &QAction::triggered, this, &MainWindow::aboutClicked);
+        connect(ui.actionRC, &QAction::triggered, this, &MainWindow::rcClicked);
 
         connect(ui.levelsTab, &QTabWidget::currentChanged, this, &MainWindow::tabChanged);
         connect(ui.levelsTab, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTabIndexSlot);
-       
     }
 
     MainWindow::~MainWindow()
-    {}
+    = default;
 
     void MainWindow::closeEvent(QCloseEvent* event)
     {
-       
         while (ui.levelsTab->count() > 0)
         {
             if (!closeTabIndex(ui.levelsTab->count() - 1))
@@ -79,14 +78,12 @@ namespace TilesEditor
         settings.setValue("windowState", saveState());
         settings.setValue("anonymousNPCGeometry", EditAnonymousNPC::savedGeometry);
 
-
         settings.setValue("tilesets", m_tilesetList.stringList());
 
 
         auto jsonRoot = cJSON_CreateObject();
-
-
         auto jsonRootArray = cJSON_CreateArray();
+
         for (auto group : m_tileGroupsList)
         {
             auto jsonGroup = cJSON_CreateObject();
@@ -102,8 +99,6 @@ namespace TilesEditor
             cJSON_AddItemToObject(jsonGroup, "objects", jsonGroupArray);
 
             cJSON_AddItemToArray(jsonRootArray, jsonGroup);
-
-
         }
 
         cJSON_AddItemToObject(jsonRoot, "tileGroups", jsonRootArray);
@@ -120,10 +115,8 @@ namespace TilesEditor
         free(tileObjectsText);
         cJSON_Delete(jsonRoot);
 
-       // event->ignore();
+		// event->ignore();
         QMainWindow::closeEvent(event);
-
-
     }
 
     EditorTabWidget* MainWindow::createNewTab()
@@ -133,15 +126,13 @@ namespace TilesEditor
         connect(tabPage, &EditorTabWidget::openLevel, this, &MainWindow::openLevel);
         connect(tabPage, &EditorTabWidget::changeTabText, this, &MainWindow::changeTabText);
         connect(tabPage, &EditorTabWidget::setStatusBar, this, &MainWindow::setStatusText);
-        
+
         return tabPage;
     }
 
     void MainWindow::openLevelFilename(const QString & fileName)
     {
         auto tabPage = createNewTab();
-
-
 
         QFileInfo fi(fileName);
 
@@ -151,13 +142,12 @@ namespace TilesEditor
         if (fi.suffix() == "gmap" || fi.suffix() == "world")
             tabPage->loadOverworld(fi.fileName(), fileName);
         else tabPage->loadLevel(fi.fileName(), fileName);
-
     }
 
     void MainWindow::openFile(bool checked)
     {
         auto fileName = QFileDialog::getOpenFileName(nullptr, "Select level", QString(), "All supported files (*.nw *.gmap *.lvl *.world)");
-        
+
         if (!fileName.isEmpty())
         {
             openLevelFilename(fileName);
@@ -177,7 +167,7 @@ namespace TilesEditor
     {
         for (auto i = 0; i < ui.levelsTab->count(); ++i)
         {
-            auto tabPage = static_cast<EditorTabWidget*>(ui.levelsTab->widget(i));
+            auto tabPage = dynamic_cast<EditorTabWidget*>(ui.levelsTab->widget(i));
 
             if (tabPage->containsLevel(levelName))
             {
@@ -187,7 +177,7 @@ namespace TilesEditor
             }
         }
 
-        auto sourceTab = static_cast<EditorTabWidget*>(this->sender());
+        auto sourceTab = dynamic_cast<EditorTabWidget*>(this->sender());
 
 
         QString fullPath;
@@ -195,12 +185,12 @@ namespace TilesEditor
         {
             openLevelFilename(fullPath);
         }
-        
+
     }
 
     void MainWindow::changeTabText(const QString& text)
     {
-        auto sourceTab = static_cast<EditorTabWidget*>(this->sender());
+        auto sourceTab = dynamic_cast<EditorTabWidget*>(this->sender());
 
         auto index = ui.levelsTab->indexOf(sourceTab);
         if (index >= 0)
@@ -245,10 +235,16 @@ namespace TilesEditor
         frm.exec();
     }
 
+    void MainWindow::rcClicked(bool checked)
+    {
+        RC::RCConnectDialog frm;
+        frm.exec();
+    }
+
     void MainWindow::closeTabIndexSlot(int index)
     {
         closeTabIndex(index);
-        
+
     }
 
     void MainWindow::takeWidgetIntoDock(QWidget* dockContainer, QWidget* target)

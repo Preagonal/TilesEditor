@@ -15,6 +15,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Widgets)
 
 qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     AboutDialog.cpp AboutDialog.h AboutDialog.ui
+    rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
     AbstractFileSystem.h
     AbstractLevelEntity.cpp AbstractLevelEntity.h
     AbstractSelection.cpp AbstractSelection.h
@@ -90,6 +91,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
 )
 target_include_directories(TilesEditor PRIVATE
     /
+    rc
     QCodeEditor/include
     QCodeEditor/include/KGL/Widgets
 )

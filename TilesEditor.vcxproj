@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="rc\RCConnectDialog.cpp" />
     <ClCompile Include="AbstractLevelEntity.cpp" />
     <ClCompile Include="AbstractSelection.cpp" />
     <ClCompile Include="cJSON\cJSON.c" />
@@ -145,6 +146,7 @@
     <ClCompile Include="TilesetsWidget.cpp" />
     <QtRcc Include="MainWindow.qrc" />
     <QtUic Include="AboutDialog.ui" />
+    <QtUic Include="rc\RCConnectDialog.ui" />
     <QtUic Include="EditAnonymousNPC.ui" />
     <QtUic Include="EditExternalNPC.ui" />
     <QtUic Include="EditLinkDialog.ui" />
@@ -165,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="rc\RCConnectDialog.h" />
     <ClInclude Include="AbstractFileSystem.h" />
     <ClInclude Include="AbstractLevelEntity.h" />
     <ClInclude Include="AbstractSelection.h" />

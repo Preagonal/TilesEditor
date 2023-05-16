@@ -10,10 +10,10 @@ namespace TilesEditor
 		Q_OBJECT
 
 	public:
-		AboutDialog(QWidget* parent = nullptr);
-		~AboutDialog();
+		explicit AboutDialog(QWidget* parent = nullptr);
+		~AboutDialog() override;
 
 	private:
-		Ui::AboutDialogClass ui;
+		Ui::AboutDialogClass ui{};
 	};
 }

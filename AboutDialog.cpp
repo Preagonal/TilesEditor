@@ -11,5 +11,5 @@ namespace TilesEditor
 	}
 
 	AboutDialog::~AboutDialog()
-	{}
+	= default;
 };

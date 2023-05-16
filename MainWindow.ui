@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>758</width>
-     <height>22</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>
@@ -74,6 +74,7 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionAbout"/>
+   <addaction name="actionRC"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="tilesetsPanel">
@@ -197,6 +198,14 @@
    </property>
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionRC">
+   <property name="icon">
+    <iconset theme="network-transmit-receive"/>
+   </property>
+   <property name="text">
+    <string>RC</string>
    </property>
   </action>
  </widget>
