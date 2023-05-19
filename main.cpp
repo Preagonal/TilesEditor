@@ -1,5 +1,8 @@
 #include "MainWindow.h"
+#include "RCConnection.h"
 #include <QtWidgets/QApplication>
+#include <thread>         // std::thread
+
 
 int main(int argc, char *argv[])
 {
@@ -37,5 +40,6 @@ int main(int argc, char *argv[])
 
     TilesEditor::MainWindow w;
     w.show();
-    return app.exec();
+
+	return app.exec();
 }

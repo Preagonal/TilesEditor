@@ -16,6 +16,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Widgets)
 qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     AboutDialog.cpp AboutDialog.h AboutDialog.ui
     rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
+    rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
+    rc/RCConnection.cpp rc/RCConnection.h
     AbstractFileSystem.h
     AbstractLevelEntity.cpp AbstractLevelEntity.h
     AbstractSelection.cpp AbstractSelection.h
@@ -162,3 +164,8 @@ install(TARGETS TilesEditor
 # the project can use Qt 6.3. In that case rerun qmake2cmake with
 # --min-qt-version=6.3.
 add_subdirectory(cmake/mingw64)
+add_subdirectory(dependencies/gs2lib)
+
+target_link_libraries(TilesEditor PRIVATE gs2lib)
+target_include_directories(TilesEditor PRIVATE ${GS2LIB_INCLUDE_DIRECTORY})
+add_dependencies(TilesEditor gs2lib)

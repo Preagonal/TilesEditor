@@ -17,6 +17,9 @@ namespace TilesEditor::RC {
 
 	private:
 		Ui::RCConnectDialog ui{};
+
+		void okClicked();
+		void cancelClicked();
 	};
 }
 

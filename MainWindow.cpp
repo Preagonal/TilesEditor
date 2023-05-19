@@ -5,6 +5,7 @@
 #include "EditorTabWidget.h"
 #include "AboutDialog.h"
 #include "RCConnectDialog.h"
+#include "RCConnection.h"
 #include "cJSON/JsonHelper.h"
 #include "EditAnonymousNPC.h"
 
@@ -45,6 +46,11 @@ namespace TilesEditor
         m_resourceManager.addSearchDir("./");
         m_resourceManager.addSearchDirRecursive("./levels/");
         m_resourceManager.addSearchDirRecursive("./world/");
+
+		auto timer = new QTimer();
+		timer->start(1000);
+
+		connect(timer, &QTimer::timeout, this, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
 
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::openFile);
         connect(ui.actionNew, &QAction::triggered, this, &MainWindow::newLevel);

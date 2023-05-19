@@ -1,0 +1,3 @@
+[submodule "dependencies/gs2lib"]
+	path = dependencies/gs2lib
+	url = https://xtjoeytx@bitbucket.org/xtjoeytx/gs2lib.git
