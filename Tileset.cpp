@@ -54,6 +54,24 @@ namespace TilesEditor
 			m_tileTypes[index] = type;
 	}
 
+	void Tileset::resize(int hcount, int vcount)
+	{
+		QVector<int> newTileTypes(hcount * vcount);
+
+		for (auto y = 0; y < std::min(m_vcount, vcount); ++y)
+		{
+			for (auto x = 0; x < std::min(m_hcount, hcount); ++x)
+			{
+				newTileTypes[y * hcount + x] = getTileType(x, y);
+
+			}
+		}
+
+		m_hcount = hcount;
+		m_vcount = vcount;
+		m_tileTypes = newTileTypes;
+	}
+
 	void Tileset::loadFromFile(const QString& fileName)
 	{
 		QFile f(fileName);
@@ -70,6 +88,11 @@ namespace TilesEditor
 
 			}
 		}
+	}
+
+	void Tileset::saveToFile()
+	{
+		saveToFile(getFileName());
 	}
 
 	void Tileset::saveToFile(const QString& fileName)
@@ -113,21 +136,35 @@ namespace TilesEditor
 	}
 
 
-	Tileset* Tileset::loadTileset(const QString& resName, const QString& fileName, ResourceManager& resourceManager)
+	Tileset* Tileset::loadTileset(const QString& name, ResourceManager& resourceManager)
 	{
-		auto text = resourceManager.getFileSystem().readAllToString(fileName);
-		QByteArray ba = text.toLocal8Bit();
-
-		auto cJSON = cJSON_Parse(ba.data());
-		if (cJSON != nullptr)
-		{
-			auto tileset = new Tileset();
-			tileset->readFromJSONNode(cJSON);
-
-			cJSON_Delete(cJSON);
-			return tileset;
-
+		if (name.endsWith(".png")) {
+			return new Tileset(name);
 		}
+		else {
+			QString fullPath;
+
+			if (resourceManager.locateFile(name + ".json", &fullPath))
+			{
+				auto text = resourceManager.getFileSystem().readAllToString(fullPath);
+
+				auto cJSON = cJSON_Parse(text.toLocal8Bit().data());
+				if (cJSON != nullptr)
+				{
+					auto tileset = new Tileset();
+					tileset->setFileName(fullPath);
+					tileset->readFromJSONNode(cJSON);
+
+					cJSON_Delete(cJSON);
+
+					tileset->setText(name);
+					return tileset;
+
+				}
+			}
+			
+		}
+
 		return nullptr;
 	}
 

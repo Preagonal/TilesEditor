@@ -21,6 +21,7 @@
 #include "LevelCommands.h"
 #include "EditTilesetDialog.h"
 #include "ScreenshotDialog.h"
+#include "LevelChest.h"
 
 namespace TilesEditor
 {
@@ -75,8 +76,11 @@ namespace TilesEditor
 		ui_objectClass.objectsTable->setColumnWidth(2, 70);
 
 		connect(ui_objectClass.newNPCButton, &QAbstractButton::clicked, this, &EditorTabWidget::objectsNewNPCClicked);
+		connect(ui_objectClass.newChestButton, &QAbstractButton::clicked, this, &EditorTabWidget::objectsNewChestClicked);
 		connect(ui_objectClass.refreshButton, &QAbstractButton::clicked, this, &EditorTabWidget::objectsRefreshClicked);
 		connect(ui_objectClass.objectsTable, &QTableView::doubleClicked, this, &EditorTabWidget::objectsDoubleClick);
+
+		
 
 		connect(ui_tilesetsClass.tileIcon, &CustomPaintWidget::paint, this, &EditorTabWidget::paintDefaultTile);
 		connect(ui_tilesetsClass.graphicsView, &GraphicsView::renderView, this, &EditorTabWidget::renderTilesetSelection);
@@ -89,6 +93,7 @@ namespace TilesEditor
 		connect(ui_tilesetsClass.deleteButton, &QAbstractButton::clicked, this, &EditorTabWidget::tilesetDeleteClicked);
 		connect(ui_tilesetsClass.refreshButton, &QAbstractButton::clicked, this, &EditorTabWidget::tilesetRefreshClicked);
 		connect(ui_tilesetsClass.newButton, &QAbstractButton::clicked, this, &EditorTabWidget::tilesetNewClicked);
+		connect(ui_tilesetsClass.openButton, &QAbstractButton::clicked, this, &EditorTabWidget::tilesetOpenClicked);
 		connect(ui_tilesetsClass.editButton, &QAbstractButton::clicked, this, &EditorTabWidget::tilesetEditClicked);
 
 		connect(ui_tileObjectsClass.graphicsView, &GraphicsView::renderView, this, &EditorTabWidget::renderTileObjects);
@@ -474,24 +479,49 @@ namespace TilesEditor
 
 	void EditorTabWidget::setTileset(const QString& name)
 	{
-		QString imageName = "";
-		if (name.indexOf(".") == -1)
+		if (name == "")
+			return;
+
+		auto index = ui_tilesetsClass.tilesetsCombo->findText(name);
+		if (index >= 0)
 		{
-			QString fileName;
-			if (m_resourceManager.locateFile(name + ".json", &fileName))
+			auto tileset = static_cast<Tileset*>(static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model())->item(index));
+
+			if (tileset)
 			{
-				m_tilesetFileName = fileName;
-				m_tileset.loadFromFile(m_tilesetFileName);
+				ui_tilesetsClass.tilesetsCombo->blockSignals(true);
+				ui_tilesetsClass.tilesetsCombo->setCurrentIndex(index);
+				ui_tilesetsClass.tilesetsCombo->blockSignals(false);
 
-				imageName = m_tileset.getImageName();
-
-				ui_tilesetsClass.editButton->setEnabled(true);
+				setTileset(tileset);
 			}
+
 		}
 		else {
-			imageName = name;
-			ui_tilesetsClass.editButton->setEnabled(false);
+			auto tileset = Tileset::loadTileset(name, m_resourceManager);
+			if (tileset)
+			{
+				auto newIndex = static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model())->rowCount();
+				static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model())->appendRow(tileset);
+				ui_tilesetsClass.tilesetsCombo->blockSignals(true);
+				ui_tilesetsClass.tilesetsCombo->setCurrentIndex(newIndex);
+				ui_tilesetsClass.tilesetsCombo->blockSignals(false);
+
+				setTileset(tileset);
+			}
 		}
+	}
+
+	void EditorTabWidget::setTileset(const Tileset* tileset)
+	{
+
+		m_tileset = *tileset;
+
+		ui_tilesetsClass.editButton->setEnabled(tileset->hasTileTypes());
+	
+
+
+		auto imageName = m_tileset.getImageName();
 
 		if (m_tilesetImage != nullptr)
 		{
@@ -514,17 +544,17 @@ namespace TilesEditor
 
 	}
 
-	void EditorTabWidget::changeTileset(const QString& name)
+	void EditorTabWidget::changeTileset(Tileset* tileset)
 	{
-		setTileset(name);
+		setTileset(tileset);
 
 		if (m_overworld)
 		{
-			m_overworld->setTilesetName(name);
+			m_overworld->setTilesetName(tileset->text());
 			setModified(nullptr);
 		}
 		else if (m_level) {
-			m_level->setTilesetName(name);
+			m_level->setTilesetName(tileset->text());
 			setModified(m_level);
 		}
 	}
@@ -560,7 +590,7 @@ namespace TilesEditor
 			case LevelEntityType::ENTITY_SIGN:
 				return m_selectSigns->isChecked();
 		}
-		return false;
+		return true;
 	}
 
 	bool EditorTabWidget::hasSelectionTiles() const
@@ -582,8 +612,9 @@ namespace TilesEditor
 			{
 				auto tileLeft = int(rect.getX() / 16) + x;
 				auto tileTop = int(rect.getY() / 16) + y;
+				auto typeType = m_tileset.getTileType(tileLeft, tileTop);
 
-				auto tile = Tilemap::MakeTile(tileLeft, tileTop, 0);
+				auto tile = Tilemap::MakeTile(tileLeft, tileTop, typeType);
 				tilemap->setTile(x, y, tile);
 			}
 		}
@@ -644,6 +675,7 @@ namespace TilesEditor
 
 		return nullptr;
 	}
+
 
 	bool EditorTabWidget::selectingLevel()
 	{
@@ -707,7 +739,7 @@ namespace TilesEditor
 	bool EditorTabWidget::doObjectSelection(int x, int y, bool allowAppend)
 	{
 
-		AbstractLevelEntity* entity = getEntityAt(x, y, true);
+		auto entity = getEntityAt(x, y, true);
 
 
 		if (entity != nullptr)
@@ -790,11 +822,13 @@ namespace TilesEditor
 		return m_level;
 	}
 
-	void EditorTabWidget::init(QStringListModel* tilesetList, TileGroupListModel* tileGroupList)
+	void EditorTabWidget::init(QStandardItemModel* tilesetList, TileGroupListModel* tileGroupList)
 	{
 		ui_tilesetsClass.tilesetsCombo->setModel(tilesetList);
 
 		ui_tileObjectsClass.groupCombo->setModel(tileGroupList);
+
+		setTileset(ui_tilesetsClass.tilesetsCombo->currentText());
 
 	}
 
@@ -1012,25 +1046,8 @@ namespace TilesEditor
 		m_level = new Level(0, 0, 64 * 16, 64 * 16, nullptr, name);
 		m_level->setFileName(fileName);
 		m_level->loadFile(m_resourceManager);
-		//m_level->loadNWFile(m_resourceManager);
 
-		if (!m_level->getTilesetName().isEmpty())
-		{
-			auto index = ui_tilesetsClass.tilesetsCombo->findText(m_level->getTilesetName());
-			if (index >= 0) {
-				ui_tilesetsClass.tilesetsCombo->blockSignals(true);
-				ui_tilesetsClass.tilesetsCombo->setCurrentIndex(index);
-				setTileset(m_level->getTilesetName());
-				ui_tilesetsClass.tilesetsCombo->blockSignals(false);
-			}
-			else {
-				ui_tilesetsClass.tilesetsCombo->setEditText(m_level->getTilesetName());
-				setTileset(m_level->getTilesetName());
-			}
-		}
-		else {
-			setTileset(ui_tilesetsClass.tilesetsCombo->currentText());;
-		}
+		setTileset(m_level->getTilesetName());
 
 		m_graphicsView->setSceneRect(QRect(0, 0, m_level->getWidth(), m_level->getHeight()));
 
@@ -1062,23 +1079,7 @@ namespace TilesEditor
 
 		m_overworld->loadFile(m_resourceManager);
 		
-		if (!m_overworld->getTilesetName().isEmpty())
-		{
-			auto index = ui_tilesetsClass.tilesetsCombo->findText(m_overworld->getTilesetName());
-			if (index >= 0) {
-				ui_tilesetsClass.tilesetsCombo->blockSignals(true);
-				ui_tilesetsClass.tilesetsCombo->setCurrentIndex(index);
-				setTileset(m_overworld->getTilesetName());
-				ui_tilesetsClass.tilesetsCombo->blockSignals(false);
-			}
-			else {
-				ui_tilesetsClass.tilesetsCombo->setEditText(m_overworld->getTilesetName());
-				setTileset(m_overworld->getTilesetName());
-			}
-		}
-		else {
-			setTileset(ui_tilesetsClass.tilesetsCombo->currentText());;
-		}
+		setTileset(m_overworld->getTilesetName());
 
 		m_graphicsView->setSceneRect(QRect(0, 0, m_overworld->getWidth(), m_overworld->getHeight()));
 
@@ -1298,8 +1299,9 @@ namespace TilesEditor
 						{
 							auto tileLeft = int(rect.getX() / 16) + x;
 							auto tileTop = int(rect.getY() / 16) + y;
+							auto tileType = m_tileset.getTileType(tileLeft, tileTop);
 
-							auto tile = Tilemap::MakeTile(tileLeft, tileTop, 0);
+							auto tile = Tilemap::MakeTile(tileLeft, tileTop, tileType);
 							tileSelection->setTile(x, y, tile);
 						}
 					}
@@ -1332,7 +1334,12 @@ namespace TilesEditor
 		{
 			m_tilesSelector.setVisible(false);
 			ui.floodFillPatternButton->setEnabled(hasSelectionTiles());
-			setDefaultTile(Tilemap::MakeTile(int(pos.x() / 16), int(pos.y() / 16), 0));
+
+			auto tileLeft = int(pos.x() / 16);
+			auto tileTop = int(pos.y() / 16);
+			auto tileType = m_tileset.getTileType(tileLeft, tileTop);
+
+			setDefaultTile(Tilemap::MakeTile(tileLeft, tileTop, tileType));
 			ui_tilesetsClass.graphicsView->redraw();
 
 
@@ -1352,7 +1359,11 @@ namespace TilesEditor
 				auto vcount = 1;
 				auto tileSelection = new TileSelection(-1000000, -1000000, hcount, vcount);
 
-				auto tile = Tilemap::MakeTile(int(pos.x() / 16.0), int(pos.y() / 16.0), 0);
+				auto tileLeft = int(pos.x() / 16);
+				auto tileTop = int(pos.y() / 16);
+				auto tileType = m_tileset.getTileType(tileLeft, tileTop);
+
+				auto tile = Tilemap::MakeTile(tileLeft, tileTop, tileType);
 
 				tileSelection->setTile(0, 0, tile);
 
@@ -1408,9 +1419,26 @@ namespace TilesEditor
 
 	void EditorTabWidget::tilesetEditClicked(bool checked)
 	{
-	
-		EditTilesetDialog dialog(m_tilesetFileName, m_resourceManager);
-		dialog.exec();
+
+		EditTilesetDialog dialog(&m_tileset, m_resourceManager);
+		if (dialog.exec() == QDialog::Accepted)
+		{
+			m_tileset = dialog.getTileset();
+
+			
+			//update this tileset globally
+			auto index = ui_tilesetsClass.tilesetsCombo->findText(m_tileset.text());
+			if (index >= 0) {
+				auto globalTileset = static_cast<Tileset*>(static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model())->item(index));
+				if (globalTileset) {
+					*globalTileset = m_tileset;
+					qDebug() << "YES";
+				}
+			
+			}
+			setTileset(&m_tileset);
+		}
+		
 	}
 
 	void EditorTabWidget::tileObjectsMousePress(QMouseEvent* event)
@@ -1936,6 +1964,10 @@ namespace TilesEditor
 							m_graphicsView->redraw();
 							return;
 						}
+					}
+					else {
+						entity->openEditor(this);
+						m_graphicsView->redraw();
 					}
 
 
@@ -2623,14 +2655,18 @@ namespace TilesEditor
 
 	void EditorTabWidget::tilesetsIndexChanged(int index)
 	{
-		auto imageName = ui_tilesetsClass.tilesetsCombo->currentText();
-		changeTileset(imageName);
+		if (index >= 0)
+		{
+			changeTileset(static_cast<Tileset*>(static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model())->item(index)));
+		}
+
+		if (m_tilesetImage)
+			ui_tilesetsClass.graphicsView->setSceneRect(0, 0, m_tilesetImage->width(), m_tilesetImage->height());
 
 		m_graphicsView->redraw();
 		ui_tilesetsClass.graphicsView->redraw();
 
-		if (m_tilesetImage)
-			ui_tilesetsClass.graphicsView->setSceneRect(0, 0, m_tilesetImage->width(), m_tilesetImage->height());
+
 	}
 
 
@@ -2644,25 +2680,70 @@ namespace TilesEditor
 
 	void EditorTabWidget::tilesetRefreshClicked(bool checked)
 	{
-		auto imageName = ui_tilesetsClass.tilesetsCombo->currentText();
+		auto tilesetName = ui_tilesetsClass.tilesetsCombo->currentText();
 
-		m_resourceManager.updateResource(imageName);
+		setTileset(tilesetName);
+
+		m_resourceManager.updateResource(m_tileset.getImageName());
 		ui_tilesetsClass.graphicsView->redraw();
 		m_graphicsView->redraw();
 	}
 
 	void EditorTabWidget::tilesetNewClicked(bool checked)
 	{
-		auto imageName = QInputDialog::getText(nullptr, "Add new tileset", "Image File: ");
+		auto tilesetName = QInputDialog::getText(nullptr, "Add new tileset", "Tileset Name: ");
 
-		if (!imageName.isEmpty())
+		if (!tilesetName.isEmpty())
 		{
+			auto tileset = new Tileset();
+			tileset->setText(tilesetName);
 
-			ui_tilesetsClass.tilesetsCombo->model()->insertRow(ui_tilesetsClass.tilesetsCombo->model()->rowCount());
-			ui_tilesetsClass.tilesetsCombo->model()->setData(ui_tilesetsClass.tilesetsCombo->model()->index(ui_tilesetsClass.tilesetsCombo->model()->rowCount() - 1, 0), imageName);
+			tileset->setFileName("./" + tilesetName + ".json");
 
-			if(ui_tilesetsClass.tilesetsCombo->model()->rowCount() == 1)
-				tilesetsIndexChanged(0);
+			if (tileset)
+			{
+				EditTilesetDialog frm(tileset, m_resourceManager);
+				if (frm.exec() == QDialog::Accepted)
+				{
+					*tileset = frm.getTileset();
+
+					auto model = static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model());
+					model->appendRow(tileset);
+
+					if (ui_tilesetsClass.tilesetsCombo->model()->rowCount() == 1)
+						ui_tilesetsClass.tilesetsCombo->setCurrentIndex(0);
+				}
+				else delete tileset;
+			}
+		}
+	}
+
+	void EditorTabWidget::tilesetOpenClicked(bool checked)
+	{
+		auto fileName = QFileDialog::getOpenFileName(nullptr, "Select Tileset", m_resourceManager.getRootDir(), "Image Files (*.png *.gif);;JSON File (*.json)");
+		if (!fileName.isEmpty())
+		{
+			QFileInfo fi(fileName);
+			auto directory = fi.absolutePath() + "/";
+
+			m_resourceManager.addSearchDir(directory);
+
+			QString name = fi.fileName();
+
+			if (fi.suffix() == "json")
+				name = fi.baseName();
+
+
+			auto tileset = Tileset::loadTileset(name, m_resourceManager);
+
+			if (tileset)
+			{
+				auto model = static_cast<QStandardItemModel*>(ui_tilesetsClass.tilesetsCombo->model());
+				model->appendRow(tileset);
+
+				if (ui_tilesetsClass.tilesetsCombo->model()->rowCount() == 1)
+					ui_tilesetsClass.tilesetsCombo->setCurrentIndex(0);
+			}
 		}
 	}
 
@@ -2834,8 +2915,6 @@ namespace TilesEditor
 
 	void EditorTabWidget::objectsNewNPCClicked(bool checked)
 	{
-		auto viewRect = getViewRect();
-
 		auto selection = new ObjectSelection(0, 0);
 
 		auto npc = new LevelNPC(nullptr, 0, 0, 48, 48);
@@ -2843,10 +2922,22 @@ namespace TilesEditor
 		selection->addObject(npc);
 		selection->setAlternateSelectionMethod(true);
 		selection->setSelectMode(ObjectSelection::SelectMode::MODE_INSERT);
-
 		setSelection(selection);
 
 	}
+
+	void EditorTabWidget::objectsNewChestClicked(bool checked)
+	{
+		auto selection = new ObjectSelection(0, 0);
+
+		auto chest = new LevelChest(nullptr, 0, 0, "greenrupee", -1);
+		selection->addObject(chest);
+		selection->setAlternateSelectionMethod(true);
+		selection->setSelectMode(ObjectSelection::SelectMode::MODE_INSERT);
+		setSelection(selection);
+
+	}
+
 
 	void EditorTabWidget::objectsRefreshClicked(bool checked)
 	{

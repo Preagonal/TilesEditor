@@ -77,6 +77,8 @@ namespace TilesEditor
 		void tilesetDeleteClicked(bool checked);
 		void tilesetRefreshClicked(bool checked);
 		void tilesetNewClicked(bool checked);
+		void tilesetOpenClicked(bool checked);
+
 		void tileGroupNewClicked(bool checked);
 		void tileGroupDeleteClicked(bool checked);
 		void tileGroupImportClicked(bool checked);
@@ -87,6 +89,7 @@ namespace TilesEditor
 		void tileObjectIndexChanged(int index);
 
 		void objectsNewNPCClicked(bool checked);
+		void objectsNewChestClicked(bool checked);
 		void objectsRefreshClicked(bool checked);
 		void objectsDoubleClick(const QModelIndex& index);
 
@@ -133,8 +136,7 @@ namespace TilesEditor
 		GraphicsView* m_graphicsView;
 		Level* m_level;
 
-		QString m_tilesetFileName;
-		Tileset	m_tileset;
+		Tileset m_tileset;
 		Image* m_tilesetImage;
 
 		Overworld* m_overworld;
@@ -164,8 +166,9 @@ namespace TilesEditor
 
 		void loadLevel(Level* level);
 		bool selectingLevel();
+		void setTileset(const Tileset* tileset);
 		void setTileset(const QString& name);
-		void changeTileset(const QString& name);
+		void changeTileset(Tileset* tileset);
 		void setUnmodified();
 		void setDefaultTile(int tile);
 
@@ -176,9 +179,10 @@ namespace TilesEditor
 		Tilemap* getTilesetSelection();
 		Tilemap* getSelectionTiles();
 
+
 	public:
 
-		void init(QStringListModel* tilesetList, TileGroupListModel* tileGroupList);
+		void init(QStandardItemModel* tilesetList, TileGroupListModel* tileGroupList);
 		QWidget* getTilesetsContainer() {
 			return m_tilesetsContainer;
 		}

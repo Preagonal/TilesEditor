@@ -28,11 +28,7 @@ namespace TilesEditor
         statusBar()->addPermanentWidget(m_statusLeft, 0);
         statusBar()->addPermanentWidget(m_statusMiddle, 1);
 
-        m_tilesetList.insertRow(m_tilesetList.rowCount());
-        m_tilesetList.setData(m_tilesetList.index(m_tilesetList.rowCount()-1, 0), "pics1.png");
 
-        m_tilesetList.insertRow(m_tilesetList.rowCount());
-        m_tilesetList.setData(m_tilesetList.index(m_tilesetList.rowCount() - 1, 0), "pics2.png");
 
         QSettings settings("settings.ini", QSettings::IniFormat);
 
@@ -40,12 +36,20 @@ namespace TilesEditor
         restoreState(settings.value("windowState").toByteArray());
         EditAnonymousNPC::savedGeometry = settings.value("anonymousNPCGeometry").toByteArray();
 
-        m_tilesetList.setStringList(settings.value("tilesets").toStringList());
-        loadTileObjects();
 
         m_resourceManager.addSearchDir("./");
         m_resourceManager.addSearchDirRecursive("./levels/");
         m_resourceManager.addSearchDirRecursive("./world/");
+
+        auto tilesets = settings.value("tilesets").toStringList();
+        for (auto& tilesetName : tilesets)
+        {
+            auto tileset = Tileset::loadTileset(tilesetName, m_resourceManager);
+            if (tileset)
+                m_tilesetList.appendRow(tileset);
+        }
+
+        loadTileObjects();
 
 		auto timer = new QTimer();
 		timer->start(1000);
@@ -84,8 +88,12 @@ namespace TilesEditor
         settings.setValue("windowState", saveState());
         settings.setValue("anonymousNPCGeometry", EditAnonymousNPC::savedGeometry);
 
-        settings.setValue("tilesets", m_tilesetList.stringList());
+        QStringList tilesets;
 
+        for (auto i = 0; i < m_tilesetList.rowCount(); ++i)
+            tilesets.append(m_tilesetList.item(i)->text());
+
+        settings.setValue("tilesets", tilesets);
 
         auto jsonRoot = cJSON_CreateObject();
         auto jsonRootArray = cJSON_CreateArray();
@@ -160,6 +168,7 @@ namespace TilesEditor
 
         }
     }
+
     void MainWindow::newLevel(bool checked)
     {
         auto tabPage = createNewTab();

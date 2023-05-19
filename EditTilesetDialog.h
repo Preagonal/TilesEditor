@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EDITTILESETDIALOGH
+#define EDITTILESETDIALOGH
 
 #include <QDialog>
 #include <QString>
@@ -13,11 +14,13 @@ namespace TilesEditor
 	{
 		Q_OBJECT
 
-	public slots:
+	private slots:
 		void renderScene(QPainter* painter, const QRectF& rect);
 		void graphicsMouseWheel(QWheelEvent* event);
 		void graphicsMouseMove(QMouseEvent* event);
 		void tileTypeClicked(bool checked);
+		void browseButtonClicked(bool checked);
+		void reloadImage();
 
 	private:
 		ResourceManager& m_resourceManager;
@@ -26,11 +29,19 @@ namespace TilesEditor
 
 		int m_selectedType;
 
+
+
 	public:
-		EditTilesetDialog(const QString& fileName, ResourceManager& resourceManager, QWidget* parent = nullptr);
+		EditTilesetDialog(const Tileset* tileset, ResourceManager& resourceManager, QWidget* parent = nullptr);
 		~EditTilesetDialog();
+
+		const Tileset& getTileset() const { return m_tileset; }
 
 	private:
 		Ui::EditTilesetDialogClass ui;
+
+	protected:
+		void accept() override;
 	};
 };
+#endif
