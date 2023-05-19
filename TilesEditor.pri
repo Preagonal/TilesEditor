@@ -10,6 +10,9 @@ message("You are running qmake on a generated .pro file. This may not work!")
 HEADERS += ./AbstractFileSystem.h \
     ./AbstractLevelEntity.h \
     ./AbstractSelection.h \
+    ./rc/RCConnectDialog.h \
+    ./rc/ServerListDialog.h \
+    ./rc/RCConnection.h \
     ./LevelChest.h \
     ./LevelCommands.h \
     ./LevelLink.h \
@@ -75,6 +78,9 @@ SOURCES += ./AboutDialog.cpp \
     ./rc/RCConnectDialog.cpp \
     ./AbstractLevelEntity.cpp \
     ./AbstractSelection.cpp \
+    ./rc/RCConnectDialog.cpp \
+    ./rc/ServerListDialog.cpp \
+    ./rc/RCConnection.cpp \
     ./EditAnonymousNPC.cpp \
     ./EditChestDialog.cpp \
     ./EditExternalNPC.cpp \
@@ -125,6 +131,7 @@ SOURCES += ./AboutDialog.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp
 FORMS += ./AboutDialog.ui \
     ./rc/RCConnectDialog.ui \
+    ./rc/ServerListDialog.ui \
     ./EditAnonymousNPC.ui \
     ./EditChestDialog.ui \
     ./EditExternalNPC.ui \

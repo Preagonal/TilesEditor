@@ -8,6 +8,7 @@ DESTDIR = ./x64/Release
 CONFIG += release
 DEFINES += KGL_STATIC
 INCLUDEPATH += ./ \
+    ./rc/ \
     ./QCodeEditor/include/ \
     ./QCodeEditor/include/KGL/Widgets/
 LIBS += -L"."

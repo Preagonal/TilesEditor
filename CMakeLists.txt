@@ -15,14 +15,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Widgets)
 
 qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     AboutDialog.cpp AboutDialog.h AboutDialog.ui
-    rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
-    rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
-    rc/RCConnection.cpp rc/RCConnection.h
     AbstractFileSystem.h
     AbstractLevelEntity.cpp AbstractLevelEntity.h
     AbstractSelection.cpp AbstractSelection.h
     CustomPaintWidget.h
     EditAnonymousNPC.cpp EditAnonymousNPC.h EditAnonymousNPC.ui
+    EditChestDialog.cpp EditChestDialog.h EditChestDialog.ui
     EditExternalNPC.cpp EditExternalNPC.h EditExternalNPC.ui
     EditLinkDialog.cpp EditLinkDialog.h EditLinkDialog.ui
     EditSignsDialog.cpp EditSignsDialog.h EditSignsDialog.ui
@@ -36,6 +34,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     Image.cpp Image.h
     ImageDimensions.cpp ImageDimensions.h
     Level.cpp Level.h
+    LevelChest.cpp LevelChest.h
     LevelCommands.cpp LevelCommands.h
     LevelEntityType.h
     LevelLink.cpp LevelLink.h
@@ -90,12 +89,15 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     cJSON/JsonHelper.h
     cJSON/cJSON.c cJSON/cJSON.h
     main.cpp
+    rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
+    rc/RCConnection.cpp rc/RCConnection.h
+    rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
 )
 target_include_directories(TilesEditor PRIVATE
     /
-    rc
     QCodeEditor/include
     QCodeEditor/include/KGL/Widgets
+    rc
 )
 
 target_compile_definitions(TilesEditor PRIVATE
@@ -112,6 +114,7 @@ target_link_libraries(TilesEditor PRIVATE
 
 # Resources:
 set(MainWindow_resource_files
+    "icons/chest.png"
     "icons/fugue/arrow-circle-315.png"
     "icons/fugue/arrow-curve-180-left.png"
     "icons/fugue/arrow-curve.png"
@@ -163,9 +166,4 @@ install(TARGETS TilesEditor
 # Consider using qt_generate_deploy_app_script() for app deployment if
 # the project can use Qt 6.3. In that case rerun qmake2cmake with
 # --min-qt-version=6.3.
-add_subdirectory(cmake/mingw64)
-add_subdirectory(dependencies/gs2lib)
-
-target_link_libraries(TilesEditor PRIVATE gs2lib)
-target_include_directories(TilesEditor PRIVATE ${GS2LIB_INCLUDE_DIRECTORY})
-add_dependencies(TilesEditor gs2lib)
+add_subdirectory(cmake)
