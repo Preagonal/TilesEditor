@@ -91,8 +91,9 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     main.cpp
     rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
     rc/RCConnection.cpp rc/RCConnection.h
+    rc/Server.h
     rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
-        rc/Server.h)
+)
 target_include_directories(TilesEditor PRIVATE
     /
     QCodeEditor/include
@@ -114,6 +115,7 @@ target_link_libraries(TilesEditor PRIVATE
 
 # Resources:
 set(MainWindow_resource_files
+    "icons/baddy.png"
     "icons/chest.png"
     "icons/fugue/arrow-circle-315.png"
     "icons/fugue/arrow-curve-180-left.png"
@@ -125,9 +127,9 @@ set(MainWindow_resource_files
     "icons/fugue/clipboard-paste.png"
     "icons/fugue/construction.png"
     "icons/fugue/cross-script.png"
-    "icons/fugue/crown.png"
-    "icons/fugue/crown-silver.png"
     "icons/fugue/crown-bronze.png"
+    "icons/fugue/crown-silver.png"
+    "icons/fugue/crown.png"
     "icons/fugue/cursor.png"
     "icons/fugue/disk--pencil.png"
     "icons/fugue/disk.png"
@@ -152,6 +154,7 @@ set(MainWindow_resource_files
     "icons/fugue/script--plus.png"
     "icons/fugue/ui-progress-bar.png"
     "icons/npc.png"
+    "icons/opps.png"
     "icons/sign.png"
     "rule_cpp.xml"
 )

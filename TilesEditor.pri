@@ -13,6 +13,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./rc/RCConnectDialog.h \
     ./rc/ServerListDialog.h \
     ./rc/RCConnection.h \
+    ./rc/Server.h \
     ./LevelChest.h \
     ./LevelCommands.h \
     ./LevelLink.h \
