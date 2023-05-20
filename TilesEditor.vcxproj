@@ -105,6 +105,7 @@
     <ClCompile Include="AbstractSelection.cpp" />
     <ClCompile Include="cJSON\cJSON.c" />
     <ClCompile Include="EditAnonymousNPC.cpp" />
+    <ClCompile Include="EditBaddy.cpp" />
     <ClCompile Include="EditChestDialog.cpp" />
     <ClCompile Include="EditExternalNPC.cpp" />
     <ClCompile Include="EditLinkDialog.cpp" />
@@ -117,6 +118,7 @@
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelChest.cpp" />
     <ClCompile Include="LevelCommands.cpp" />
+    <ClCompile Include="LevelGraalBaddy.cpp" />
     <ClCompile Include="LevelLink.cpp" />
     <ClCompile Include="LevelNPC.cpp" />
     <ClCompile Include="LevelSign.cpp" />
@@ -153,6 +155,7 @@
     <QtUic Include="rc\RCConnectDialog.ui" />
     <ClCompile Include="rc\ServerListDialog.ui" />
     <QtUic Include="EditAnonymousNPC.ui" />
+    <QtUic Include="EditBaddy.ui" />
     <QtUic Include="EditChestDialog.ui" />
     <QtUic Include="EditExternalNPC.ui" />
     <QtUic Include="EditLinkDialog.ui" />
@@ -189,8 +192,10 @@
     <ClInclude Include="cJSON\JsonHelper.h" />
     <QtMoc Include="EditTilesetDialog.h" />
     <QtMoc Include="EditChestDialog.h" />
+    <QtMoc Include="EditBaddy.h" />
     <ClInclude Include="LevelChest.h" />
     <ClInclude Include="LevelCommands.h" />
+    <ClInclude Include="LevelGraalBaddy.h" />
     <ClInclude Include="LevelLink.h" />
     <ClInclude Include="LevelNPC.h" />
     <ClInclude Include="LevelSign.h" />
