@@ -15,19 +15,28 @@ namespace TilesEditor::RC {
 	typedef void (RCConnection::*TSLSock)(CString&);
 	std::vector<TSLSock> TSLFunc(256, &RCConnection::msgNULL);
 
-	void RCConnection::createFunctions()
+	void RCConnection::createFunctions(bool listServerConnection)
 	{
 		if (RCConnection::created)
 			return;
 
 		// now set non-nulls
-		//TSLFunc[PLO_RC_CHAT] = &RCConnection::msgRC_CHAT;
-		TSLFunc[PLO_STATUS] = &RCConnection::msgSTATUS;
+		if (listServerConnection) {
+			TSLFunc[LI_STATUS] = &RCConnection::msgSTATUS;
+			TSLFunc[LI_SITEURL] = &RCConnection::msgSTATUS;
+			TSLFunc[LI_UPGURL] = &RCConnection::msgUPGURL;
+			TSLFunc[LI_ERROR] = &RCConnection::msgERROR;
+			TSLFunc[LI_SVRLIST] = &RCConnection::msgSVRLIST;
+		} else {
+			TSLFunc[PLO_DISCMESSAGE] = &RCConnection::msgDISCMESSAGE;
+			TSLFunc[PLO_RC_CHAT] = &RCConnection::msgRC_CHAT;
+			TSLFunc[PLO_RC_FILEBROWSER_DIR] = &RCConnection::msgRC_FILEBROWSER_DIR;
+			TSLFunc[PLO_RC_FILEBROWSER_DIRLIST] = &RCConnection::msgRC_FILEBROWSER_DIRLIST;
+		}
 
 		// Finished
 		RCConnection::created = true;
 	}
-
 
 	/*
 		Socket-Control Functions
@@ -47,7 +56,7 @@ namespace TilesEditor::RC {
 		else if (sock.getState() == SOCKET_STATE_DISCONNECTED)
 			return false;
 
-		main();
+		doRecv();
 
 		return true;
 	}
@@ -69,8 +78,7 @@ namespace TilesEditor::RC {
 		printf(":: %s - Disconnected.\n", sock.getDescription());
 	}
 
-
-	bool RCConnection::main()
+	bool RCConnection::doRecv()
 	{
 		if (!getConnected())
 			return false;
@@ -124,7 +132,6 @@ namespace TilesEditor::RC {
 
 		return getConnected();
 	}
-
 
 	void RCConnection::decryptPacket(CString& pPacket)
 	{
@@ -231,17 +238,34 @@ namespace TilesEditor::RC {
 		return true;
 	}
 
-	bool RCConnection::connectServer()
+	bool RCConnection::connectServer(Server server)
 	{
 		QSettings settings("settings.ini", QSettings::IniFormat);
 
-		if (getConnected())
-			return true;
+		listServerConnection = (server.ServerIp.empty() && server.ServerPort.empty());
+
+		RCConnection::created = false;
+		RCConnection::createFunctions(listServerConnection);
+
+		if (getConnected()) {
+			//return true;
+			sock.disconnect();
+		}
+
+		std::string serverIp, serverPort;
+
+		if (listServerConnection) {
+			serverIp = settings.value("listip","").toString().toStdString();
+			serverPort = settings.value("listport","").toString().toStdString();
+		} else {
+			serverIp = server.ServerIp;
+			serverPort = server.ServerPort;
+		}
 
 		printf(":: Initializing %s socket.\n", sock.getDescription());
 
 		// Initialize the socket
-		if (sock.init(settings.value("listip","").toString().toStdString().c_str(), settings.value("listport","").toString().toStdString().c_str()) != 0)
+		if (sock.init(serverIp.c_str(), serverPort.c_str()) != 0)
 		{
 			printf(":: [Error] Could not initialize %s socket.\n", sock.getDescription());
 			return false;
@@ -261,14 +285,26 @@ namespace TilesEditor::RC {
 		// TODO(joey): Some packets were being queued up from the server before we were connected, and would spam the serverlist
 		// upon connection. Clearing the outgoing buffer upon connection
 		_fileQueue.clearBuffers();
+		_fileQueue.setCodec(ENCRYPT_GEN_2, 0);
 
-		//_fileQueue.setCodec(ENCRYPT_GEN_1, 0);
-		sendPacket(CString() >> (char)5 >> (char)0 << "GSERV025", true);
-		_fileQueue.setCodec(ENCRYPT_GEN_5, key);
-		in_codec.setGen(ENCRYPT_GEN_5);
-		in_codec.reset(key);
+		std::string versionString = "GSERV025";
 
-		sendPacket(CString() >> (char)1 >> (char)_account.size() << _account >> (char)_password.size() << _password);
+		if (listServerConnection) {
+			sendPacket(CString() >> (char) 5 >> (char) key << versionString.c_str(), true);
+			_fileQueue.setCodec(ENCRYPT_GEN_5, key);
+			in_codec.setGen(ENCRYPT_GEN_5);
+			in_codec.reset(key);
+
+			sendPacket(CString() >> (char) 1 >> (char) _account.size() << _account >> (char) _password.size() << _password);
+		} else {
+			CString keyPacket = CString () >> (char)6 >> (char)key << versionString.c_str() >> (char)_account.size() << _account >> (char)_password.size() << _password;// + new CString ( "win" ).Tokenize () + ",";
+			sendPacket(keyPacket, true);
+			_fileQueue.setCodec(ENCRYPT_GEN_5, key);
+			in_codec.setGen(ENCRYPT_GEN_5);
+			in_codec.reset(key);
+
+			sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_START);
+		}
 
 		// Return Connection-Status
 		return getConnected();
@@ -303,14 +339,132 @@ namespace TilesEditor::RC {
 	{
 		pPacket.setRead(0);
 		printf(":: Unknown Serverlist Packet: %i (%s)", pPacket.readGUChar(), pPacket.text()+1);
-		std::cout <<std::endl;
+		std::cout << std::endl;
 	}
 
 	void RCConnection::msgSTATUS(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
 		std::cout << status.text() << std::endl;
+		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgRC_CHAT(CString& pPacket)
+	{
+		auto status = pPacket.readString("\n");
+		std::cout << status.text() << std::endl;
 		QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgRC_FILEBROWSER_DIR(CString& pPacket)
+	{
+		auto folder = pPacket.readChars(pPacket.readGUChar());
+		std::cout << folder.text() << std::endl;
+
+		_files.clear();
+
+		_currentFolder = folder.text();
+
+		while (pPacket.bytesLeft() > 0) {
+			pPacket.readGUChar(); // always " " ??
+			auto file = pPacket.readChars(pPacket.readGUChar());
+
+			_files.push_back(
+				{
+					.Name = file.readChars(file.readGUChar()).text(),
+					.Rights = file.readChars(file.readGUChar()).text(),
+					.Size = file.readGInt5(),
+					.ModTime = file.readGInt5()
+				}
+			);
+		}
+
+		QMessageBox::information(nullptr, "Serverlist Status", folder.text(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgRC_FILEBROWSER_DIRLIST(CString& pPacket)
+	{
+		auto dirList = pPacket.readString("\n").guntokenizeI().tokenize("\n");
+
+		_dirs.clear();
+		for (const auto & dir : dirList) {
+			auto dirCols = dir.tokenize(" ");
+			_dirs.push_back(
+				{
+					.Name = dirCols[1].text(),
+					.Rights = dirCols[0].text()
+				}
+			);
+		}
+
+		QMessageBox::information(nullptr, "Serverlist Status", _dirs[0].Name.c_str(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgDISCMESSAGE(CString& pPacket)
+	{
+		auto status = pPacket.readString("\n");
+		std::cout << status.text() << std::endl;
+		QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+		sock.disconnect();
+	}
+
+	void RCConnection::msgUPGURL(CString& pPacket)
+	{
+		auto status = pPacket.readString("\n");
+		std::cout << status.text() << std::endl;
+		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+		sock.disconnect();
+	}
+
+	void RCConnection::msgERROR(CString& pPacket)
+	{
+		auto status = pPacket.readString("\n");
+		std::cout << status.text() << std::endl;
+		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+		sock.disconnect();
+	}
+
+	void RCConnection::msgSVRLIST(CString& pPacket)
+	{
+		auto numServers = pPacket.readGUChar();
+
+		std::vector<Server> servers;
+
+		for (int i = 0; i < numServers; i++) {
+			pPacket.readGUChar(); // Number of fields. Always 8
+			std::string name = pPacket.readChars(pPacket.readGUChar()).text();
+			std::string typeStr = name.substr(0, 2);
+			ServerType type = ServerType::Classic;
+
+			if (typeStr == "3 ")
+				type = ServerType::_3D;
+			else if (typeStr == "P ")
+				type = ServerType::Gold;
+			else if (typeStr == "H ")
+				type = ServerType::Hosted;
+			else if (typeStr == "U ")
+				type = ServerType::Hidden;
+
+			if (type > ServerType::Classic)
+				name = name.substr(2);
+
+			servers.push_back(
+				{
+					.Name = name,
+					.Language = pPacket.readChars(pPacket.readGUChar()).text(),
+					.Description = pPacket.readChars(pPacket.readGUChar()).text(),
+					.Url = pPacket.readChars(pPacket.readGUChar()).text(),
+					.Version = pPacket.readChars(pPacket.readGUChar()).text(),
+					.PlayerCount = pPacket.readChars(pPacket.readGUChar()).text(),
+					.ServerIp = pPacket.readChars(pPacket.readGUChar()).text(),
+					.ServerPort = pPacket.readChars(pPacket.readGUChar()).text(),
+					.Type = type
+				}
+		  	);
+		}
+
+		serverList.setServers(servers);
+		serverList.open();
 	}
 
 	void RCConnection::connect() {

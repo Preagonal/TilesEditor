@@ -10,17 +10,19 @@
 #include <CEncryption.h>
 #include <CFileQueue.h>
 
+#include "ServerListDialog.h"
+
 using namespace std;
 namespace TilesEditor::RC {
 	enum
 	{
-		PLO_SVRLIST			= 0,
-		PLO_NULL			= 1,
-		PLO_STATUS			= 2,
-		PLO_SITEURL			= 3,
-		PLO_ERROR			= 4,
-		PLO_UPGURL			= 5,
-		PLO_GRSECURELOGIN	= 223
+		LI_SVRLIST			= 0,
+		LI_NULL				= 1,
+		LI_STATUS			= 2,
+		LI_SITEURL			= 3,
+		LI_ERROR			= 4,
+		LI_UPGURL			= 5,
+		LI_GRSECURELOGIN	= 223
 	};
 
 	class RCConnection : public CSocketStub {
@@ -44,19 +46,22 @@ namespace TilesEditor::RC {
 			std::string _serverRemoteIp;
 
 		private:
-			string _account, _password, _nickname;
-
+			std::vector<File> _files;
+			std::vector<Dir> _dirs;
+			string _account, _password, _nickname, _currentFolder;
+			ServerListDialog serverList;
 			static RCConnection *instancePtr;
 
 			// Incoming message parsing functions
 			static bool created;
-			static void createFunctions();
+			static void createFunctions(bool listServerConnection = true);
 
 
 			// Encryption
 			unsigned char key = 0;
 			CEncryption in_codec;
 
+			bool listServerConnection = true;
 
 			RCConnection();
 
@@ -89,8 +94,8 @@ namespace TilesEditor::RC {
 			// Socket-Control Functions
 			CSocketManager sockManager;
 			[[nodiscard]] bool getConnected() const;
-			bool main();
-			bool connectServer();
+			bool doRecv();
+			bool connectServer(Server server = {});
 			CSocket& getSocket()					{ return sock; }
 			void sendPacket(CString& pPacket, bool sendNow = false);
 
@@ -110,7 +115,17 @@ namespace TilesEditor::RC {
 
 			void msgNULL(CString& pPacket);
 
+			// Listserver Packets
 			void msgSTATUS(CString& pPacket);
+			void msgUPGURL(CString& pPacket);
+			void msgERROR(CString& pPacket);
+			void msgSVRLIST(CString& pPacket);
+
+			// RC Packets
+			void msgRC_CHAT(CString& pPacket);
+			void msgDISCMESSAGE(CString& pPacket);
+			void msgRC_FILEBROWSER_DIR(CString& pPacket);
+			void msgRC_FILEBROWSER_DIRLIST(CString& pPacket);
 	};
 }
 #endif //TILESEDITOR_RCCONNECTION_H

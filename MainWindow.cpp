@@ -52,7 +52,7 @@ namespace TilesEditor
         loadTileObjects();
 
 		auto timer = new QTimer();
-		timer->start(1000);
+		timer->start(300);
 
 		connect(timer, &QTimer::timeout, this, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
 

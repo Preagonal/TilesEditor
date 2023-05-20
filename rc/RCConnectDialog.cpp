@@ -31,7 +31,7 @@ namespace TilesEditor::RC
 		connection->setPassword(ui.passwordEdit->text().toStdString());
 		connection->setNickname(ui.nickEdit->text().toStdString());
 
-		if (connection->connectServer()) {
+		if (connection->connectServer(TilesEditor::RC::Server())) {
 			hide();
 		}
 	}
