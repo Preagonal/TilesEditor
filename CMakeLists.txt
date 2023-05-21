@@ -91,11 +91,11 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     cJSON/JsonHelper.h
     cJSON/cJSON.c cJSON/cJSON.h
     main.cpp
+    rc/FileBrowserDialog.cpp rc/FileBrowserDialog.h rc/FileBrowserDialog.ui
     rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
     rc/RCConnection.cpp rc/RCConnection.h
     rc/Server.h
     rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
-    rc/FileBrowserDialog.cpp rc/FileBrowserDialog.h rc/FileBrowserDialog.ui
 )
 target_include_directories(TilesEditor PRIVATE
     /
