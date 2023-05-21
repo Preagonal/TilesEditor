@@ -12,8 +12,10 @@ HEADERS += ./AbstractFileSystem.h \
     ./AbstractSelection.h \
     ./rc/RCConnectDialog.h \
     ./rc/ServerListDialog.h \
+    ./rc/FileBrowserDialog.h \
     ./rc/RCConnection.h \
     ./rc/Server.h \
+    ./LevelGraalBaddy.h \
     ./LevelChest.h \
     ./LevelCommands.h \
     ./LevelLink.h \
@@ -50,6 +52,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./rc/RCConnectDialog.h \
     ./TilesetsWidget.h \
     ./EditAnonymousNPC.h \
+    ./EditBaddy.h \
     ./EditLinkDialog.h \
     ./EditSignsDialog.h \
     ./CustomPaintWidget.h \
@@ -81,8 +84,10 @@ SOURCES += ./AboutDialog.cpp \
     ./AbstractSelection.cpp \
     ./rc/RCConnectDialog.cpp \
     ./rc/ServerListDialog.cpp \
+    ./rc/FileBrowserDialog.cpp \
     ./rc/RCConnection.cpp \
     ./EditAnonymousNPC.cpp \
+    ./EditBaddy.cpp \
     ./EditChestDialog.cpp \
     ./EditExternalNPC.cpp \
     ./EditLinkDialog.cpp \
@@ -93,6 +98,7 @@ SOURCES += ./AboutDialog.cpp \
     ./Image.cpp \
     ./ImageDimensions.cpp \
     ./Level.cpp \
+    ./LevelGraalBaddy.cpp \
     ./LevelChest.cpp \
     ./LevelCommands.cpp \
     ./LevelLink.cpp \
@@ -133,7 +139,9 @@ SOURCES += ./AboutDialog.cpp \
 FORMS += ./AboutDialog.ui \
     ./rc/RCConnectDialog.ui \
     ./rc/ServerListDialog.ui \
+    ./rc/FileBrowserDialog.ui \
     ./EditAnonymousNPC.ui \
+    ./EditBaddy.ui \
     ./EditChestDialog.ui \
     ./EditExternalNPC.ui \
     ./EditLinkDialog.ui \

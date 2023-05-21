@@ -365,6 +365,8 @@ namespace TilesEditor::RC {
 
 		_currentFolder = folder.text();
 
+		fileBrowser.setCurrentFolder(_currentFolder);
+
 		while (pPacket.bytesLeft() > 0) {
 			pPacket.readGUChar(); // always " " ??
 			auto file = pPacket.readChars(pPacket.readGUChar());
@@ -378,26 +380,26 @@ namespace TilesEditor::RC {
 				}
 			);
 		}
-
-		QMessageBox::information(nullptr, "Serverlist Status", folder.text(), QMessageBox::Ok);
+		fileBrowser.setFiles(_files);
+		fileBrowser.open();
 	}
 
 	void RCConnection::msgRC_FILEBROWSER_DIRLIST(CString& pPacket)
 	{
-		auto dirList = pPacket.readString("\n").guntokenizeI().tokenize("\n");
+		auto folderList = pPacket.readString("\n").guntokenizeI().tokenize("\n");
 
-		_dirs.clear();
-		for (const auto & dir : dirList) {
-			auto dirCols = dir.tokenize(" ");
-			_dirs.push_back(
+		_folders.clear();
+		for (const auto & folder : folderList) {
+			auto folderColumns = folder.tokenize(" ");
+			_folders.push_back(
 				{
-					.Name = dirCols[1].text(),
-					.Rights = dirCols[0].text()
+					.Name = folderColumns[1].text(),
+					.Rights = folderColumns[0].text()
 				}
 			);
 		}
 
-		QMessageBox::information(nullptr, "Serverlist Status", _dirs[0].Name.c_str(), QMessageBox::Ok);
+		fileBrowser.setFolders(_folders);
 	}
 
 	void RCConnection::msgDISCMESSAGE(CString& pPacket)

@@ -34,7 +34,7 @@ namespace TilesEditor::RC {
 	typedef struct Dir {
 		std::string Name;
 		std::string Rights;
-	} Dir;
+	} Folder;
 }
 
 #endif //TILESEDITOR_SERVER_H

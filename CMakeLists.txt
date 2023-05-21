@@ -20,6 +20,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     AbstractSelection.cpp AbstractSelection.h
     CustomPaintWidget.h
     EditAnonymousNPC.cpp EditAnonymousNPC.h EditAnonymousNPC.ui
+    EditBaddy.cpp EditBaddy.h EditBaddy.ui
     EditChestDialog.cpp EditChestDialog.h EditChestDialog.ui
     EditExternalNPC.cpp EditExternalNPC.h EditExternalNPC.ui
     EditLinkDialog.cpp EditLinkDialog.h EditLinkDialog.ui
@@ -37,6 +38,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     LevelChest.cpp LevelChest.h
     LevelCommands.cpp LevelCommands.h
     LevelEntityType.h
+    LevelGraalBaddy.cpp LevelGraalBaddy.h
     LevelLink.cpp LevelLink.h
     LevelNPC.cpp LevelNPC.h
     LevelSign.cpp LevelSign.h
@@ -93,6 +95,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     rc/RCConnection.cpp rc/RCConnection.h
     rc/Server.h
     rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
+    rc/FileBrowserDialog.cpp rc/FileBrowserDialog.h rc/FileBrowserDialog.ui
 )
 target_include_directories(TilesEditor PRIVATE
     /

@@ -11,6 +11,7 @@
 #include <CFileQueue.h>
 
 #include "ServerListDialog.h"
+#include "FileBrowserDialog.h"
 
 using namespace std;
 namespace TilesEditor::RC {
@@ -47,9 +48,10 @@ namespace TilesEditor::RC {
 
 		private:
 			std::vector<File> _files;
-			std::vector<Dir> _dirs;
+			std::vector<Folder> _folders;
 			string _account, _password, _nickname, _currentFolder;
 			ServerListDialog serverList;
+			FileBrowserDialog fileBrowser;
 			static RCConnection *instancePtr;
 
 			// Incoming message parsing functions
