@@ -35,9 +35,9 @@ namespace TilesEditor::RC {
 		void homepageClicked(bool checked = false);
 
 		void buildTree(const std::vector<std::string>& strings, QStandardItem* parentItem);
-		QStandardItem* findChildItem(const std::string& name, QStandardItem* parentItem);
+		static QStandardItem* findChildItem(const std::string& name, QStandardItem* parentItem);
 		QStandardItem* getItem(const QModelIndex& index) const;
-		QString getItemPath(const QModelIndex& index) const;
+		static QString getItemPath(const QModelIndex& index) ;
 
 		Ui::FileBrowserDialog *ui;
 		std::vector<File> _files;
@@ -45,7 +45,7 @@ namespace TilesEditor::RC {
 		uint32_t selected = 0;
 		uint32_t folderIter = 0;
 		QStandardItem* rootItem = nullptr;
-		QStandardItemModel* model;
+		QStandardItemModel* directoryModel;
 
 		static std::string humanSize(uint64_t bytes);
 	};

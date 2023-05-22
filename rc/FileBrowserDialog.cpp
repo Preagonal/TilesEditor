@@ -15,11 +15,6 @@ namespace TilesEditor::RC {
 			QDialog(parent),
 			ui(new Ui::FileBrowserDialog) {
 		ui->setupUi(this);
-/*
-		connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &ServerListDialog::okClicked);
-		connect(ui->treeView, &QTreeView::doubleClicked, this, &ServerListDialog::doubleClicked);
-
-*/
 
 		connect(ui->closeButton, &QPushButton::clicked, this, &FileBrowserDialog::closeClicked);
 
@@ -48,20 +43,9 @@ namespace TilesEditor::RC {
 			const QModelIndex& index = selectedIndexes.first();
 
 			auto newIconData = QVariant::fromValue<QIcon>(QIcon(":/MainWindow/icons/fugue/blue-folder-horizontal-open.png")); // Replace with your new icon path
-			model->setData(index, newIconData, Qt::DecorationRole);
+			directoryModel->setData(index, newIconData, Qt::DecorationRole);
 
 			folderPath = getItemPath(index).toStdString();
-
-			//itemPath += "*";
-			/*
-            qDebug() << "Selected item path: " << QString::fromStdString(itemPath);
-
-			for (const auto& folder : _folders) {
-				if (folder.Name == itemPath) {
-					foundFolder = folder;
-					break;
-				}
-			}*/
 		}
 
 		QModelIndexList deselectedIndexes = deselectedRow.indexes();
@@ -71,7 +55,7 @@ namespace TilesEditor::RC {
 			bool isExpanded = ui->directoryView->isExpanded(index);
 			if (!isExpanded) {
 				QVariant newIconData = QVariant::fromValue<QIcon>(QIcon(":/MainWindow/icons/fugue/blue-folder-horizontal.png")); // Replace with your new icon path
-				model->setData(index, newIconData, Qt::DecorationRole);
+				directoryModel->setData(index, newIconData, Qt::DecorationRole);
 			}
 		}
 
@@ -79,15 +63,6 @@ namespace TilesEditor::RC {
 			RCConnection* connection = RCConnection::getInstance();
 			connection->sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_CD << folderPath);
 		}
-
-		/*
-		auto folder = _folders[selected];
-
-		ui->languageEdit->setText(server.Language.c_str());
-		ui->versionEdit->setText(server.Version.c_str());
-		ui->descriptionEdit->setText(server.Description.c_str());
-		ui->homepageEdit->setText(server.Url.c_str());
-		*/
 	}
 
 	void FileBrowserDialog::homepageClicked(bool checked) {
@@ -114,8 +89,8 @@ namespace TilesEditor::RC {
 
 				buildTree({ remainingStr }, dirItem);
 			} else {
-				if (str != "") {
-					QStandardItem* fileItem = new QStandardItem(QString::fromStdString(str));
+				if (!str.empty()) {
+					auto* fileItem = new QStandardItem(QString::fromStdString(str));
 					parentItem->appendRow(fileItem);
 					folderIter++;
 				}
@@ -125,7 +100,7 @@ namespace TilesEditor::RC {
 
 	QStandardItem* FileBrowserDialog::findChildItem(const std::string &name, QStandardItem *parentItem) {
 		for (int i = 0; i < parentItem->rowCount(); ++i) {
-			QStandardItem* childItem = parentItem->child(i);
+			auto childItem = parentItem->child(i);
 			if (childItem->text() == QString::fromStdString(name))
 				return childItem;
 		}
@@ -134,14 +109,14 @@ namespace TilesEditor::RC {
 
 	QStandardItem* FileBrowserDialog::getItem(const QModelIndex& index) const {
 		if (index.isValid()) {
-			QStandardItem* item = static_cast<QStandardItem*>(index.internalPointer());
+			auto* item = static_cast<QStandardItem*>(index.internalPointer());
 			if (item)
 				return item;
 		}
 		return rootItem;
 	}
 
-	QString FileBrowserDialog::getItemPath(const QModelIndex& index) const {
+	QString FileBrowserDialog::getItemPath(const QModelIndex& index) {
 		QStringList pathList;
 
 		QModelIndex currentIndex = index;
@@ -160,15 +135,15 @@ namespace TilesEditor::RC {
 		_folders = folders;
 
 		open();
-		model = new QStandardItemModel;
+		directoryModel = new QStandardItemModel;
 
-		rootItem = model->invisibleRootItem();
+		rootItem = directoryModel->invisibleRootItem();
 
 		folderIter = 0;
 
 		std::vector<std::string> folderStrings;
 
-		for (auto folder : _folders) {
+		for (const auto& folder : _folders) {
 			std::string nameString = std::regex_replace(folder.Name, std::regex("\\*"), "");
 			folderStrings.push_back(nameString);
 		}
@@ -176,26 +151,12 @@ namespace TilesEditor::RC {
 		// Sort the vector in ascending order
 		std::sort(folderStrings.begin(), folderStrings.end());
 
-
 		buildTree(folderStrings, rootItem);
 
-		/*
-		//model->setHeaderData(0, Qt::Horizontal, tr(""), Qt::DisplayRole);
-		model->setHeaderData(1, Qt::Horizontal, tr("Name"), Qt::DisplayRole);
-		model->setHeaderData(2, Qt::Horizontal, tr("Rights"), Qt::DisplayRole);
-		model->setHeaderData(3, Qt::Horizontal, tr("Size"), Qt::DisplayRole);
-		model->setHeaderData(4, Qt::Horizontal, tr("Modified"), Qt::DisplayRole);
-		*/
 
-		ui->directoryView->setModel(model);
+		ui->directoryView->setModel(directoryModel);
 		connect(ui->directoryView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::activated);
 		ui->directoryView->setHeaderHidden(true);
-		//connect(ui->directoryView, &QTreeView::expanded, this, &FileBrowserDialog::directoryExpanded);
-		//ui->fileView->setItemDelegate(delegate);
-		//ui->directoryView->setColumnHidden(0, true);
-		//ui->directoryView->resizeColumnToContents(0);
-		//ui->directoryView->resizeColumnToContents(1);
-
 	}
 
 	std::string FileBrowserDialog::humanSize(uint64_t bytes)
@@ -219,9 +180,9 @@ namespace TilesEditor::RC {
 	void FileBrowserDialog::setFiles(const std::vector<File>& files) {
 		_files = files;
 
-		auto model = new QStandardItemModel;
+		auto fileModel = new QStandardItemModel;
 
-		QStandardItem * root = model->invisibleRootItem();
+		QStandardItem * root = fileModel->invisibleRootItem();
 
 		QList<QStandardItem*> rowItems;
 
@@ -253,18 +214,15 @@ namespace TilesEditor::RC {
 			i++;
 		}
 
-		//model->setHeaderData(0, Qt::Horizontal, tr(""), Qt::DisplayRole);
-		model->setHeaderData(1, Qt::Horizontal, tr("Name"), Qt::DisplayRole);
-		model->setHeaderData(2, Qt::Horizontal, tr("Rights"), Qt::DisplayRole);
-		model->setHeaderData(3, Qt::Horizontal, tr("Size"), Qt::DisplayRole);
-		model->setHeaderData(4, Qt::Horizontal, tr("Modified"), Qt::DisplayRole);
+		fileModel->setHeaderData(1, Qt::Horizontal, tr("Name"), Qt::DisplayRole);
+		fileModel->setHeaderData(2, Qt::Horizontal, tr("Rights"), Qt::DisplayRole);
+		fileModel->setHeaderData(3, Qt::Horizontal, tr("Size"), Qt::DisplayRole);
+		fileModel->setHeaderData(4, Qt::Horizontal, tr("Modified"), Qt::DisplayRole);
 
-		ui->fileView->setModel(model);
+		ui->fileView->setModel(fileModel);
 		connect(ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::activated);
-		//ui->fileView->setItemDelegate(delegate);
 		ui->fileView->setColumnHidden(0, true);
 		ui->fileView->setAlternatingRowColors(true);
-		//ui->fileView->resizeColumnToContents(0);
 		ui->fileView->resizeColumnToContents(2);
 	}
 
