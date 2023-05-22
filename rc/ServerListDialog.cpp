@@ -41,6 +41,7 @@ namespace TilesEditor::RC {
 
 		auto server = _servers[selected];
 		if (connection->connectServer(server)) {
+			connection->fileBrowser.open();
 			hide();
 		}
 	}

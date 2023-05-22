@@ -35,6 +35,8 @@
         <file>icons/sign.png</file>
         <file>icons/fugue/disk--pencil.png</file>
         <file>icons/fugue/document-medium.png</file>
+        <file>icons/fugue/blue-folder-horizontal.png</file>
+        <file>icons/fugue/blue-folder-horizontal-open.png</file>
         <file>icons/fugue/folder-open-document.png</file>
         <file>icons/fugue/disk.png</file>
         <file>rule_cpp.xml</file>

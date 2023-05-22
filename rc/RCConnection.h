@@ -51,7 +51,6 @@ namespace TilesEditor::RC {
 			std::vector<Folder> _folders;
 			string _account, _password, _nickname, _currentFolder;
 			ServerListDialog serverList;
-			FileBrowserDialog fileBrowser;
 			static RCConnection *instancePtr;
 
 			// Incoming message parsing functions
@@ -94,6 +93,7 @@ namespace TilesEditor::RC {
 			bool doTimedEvents();
 
 			// Socket-Control Functions
+			FileBrowserDialog fileBrowser;
 			CSocketManager sockManager;
 			[[nodiscard]] bool getConnected() const;
 			bool doRecv();
@@ -124,10 +124,12 @@ namespace TilesEditor::RC {
 			void msgSVRLIST(CString& pPacket);
 
 			// RC Packets
+			void msgSIGNATURE(CString& pPacket);
 			void msgRC_CHAT(CString& pPacket);
 			void msgDISCMESSAGE(CString& pPacket);
 			void msgRC_FILEBROWSER_DIR(CString& pPacket);
 			void msgRC_FILEBROWSER_DIRLIST(CString& pPacket);
+			void msgRC_FILEBROWSER_MESSAGE(CString& pPacket);
 	};
 }
 #endif //TILESEDITOR_RCCONNECTION_H

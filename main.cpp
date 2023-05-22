@@ -1,14 +1,68 @@
 #include "MainWindow.h"
 #include "RCConnection.h"
+#include "RCConnectDialog.h"
 #include <QtWidgets/QApplication>
-#include <thread>         // std::thread
 
+static bool rcMode = false;
+
+void printHelp(const char* pname)
+{
+	//serverlog.out("%s %s version %s\n", APP_VENDOR, APP_NAME, APP_VERSION);
+	//serverlog.out("Programmed by %s.\n\n", APP_CREDITS);
+	std::cout << "USAGE: " << pname << " [options]\n\n";
+	std::cout << "Commands:\n\n";
+	std::cout << " -h, --help\t\tPrints out this help text.\n";
+	std::cout << " --rc, --remotecontrol DIR\tOverride the servers.txt by specifying which server directory to use.\n";
+
+	std::cout << std::endl;
+}
+
+bool parseArgs(int argc, char* argv[])
+{
+	std::vector<CString> args;
+
+	auto test_for_end = [&args](auto &&iterator, auto &&end)
+	{
+		if (iterator == end) {
+			//printHelp(args[0].text());
+			return true;
+		}
+		return false;
+	};
+
+	rcMode = getenv("RCMODE");
+
+	if (!rcMode) {
+		for ( int i = 0; i < argc; ++i )
+			args.push_back(CString(argv[i]));
+
+		for ( auto i = args.begin(); i != args.end(); ++i ) {
+			if ((*i).find("--") == 0 ) {
+				CString key((*i).subString(2));
+				if (key == "help") {
+					printHelp(args[0].text());
+					return true;
+				} else {
+					if (key == "rc" || key == "remotecontrol")
+						rcMode = true;
+
+					if (test_for_end(++i, args.end()))
+						return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-   // app.setStyle("fusion");
+	parseArgs(argc, argv);
+
+	// app.setStyle("fusion");
     if (false)
     {
         QPalette darkPalette;
@@ -38,8 +92,17 @@ int main(int argc, char *argv[])
         app.setPalette(darkPalette);
     }
 
-    TilesEditor::MainWindow w;
-    w.show();
+	auto timer = new QTimer();
+	timer->start(5);
+	app.connect(timer, &QTimer::timeout, &app, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
+
+	TilesEditor::MainWindow mw;
+	TilesEditor::RC::RCConnectDialog rc;
+
+	if (!rcMode)
+		mw.show();
+	else
+		rc.show();
 
 	return app.exec();
 }

@@ -8,6 +8,7 @@
 #include "RCConnection.h"
 #include "cJSON/JsonHelper.h"
 #include "EditAnonymousNPC.h"
+#include <thread>
 
 namespace TilesEditor
 {
@@ -50,11 +51,6 @@ namespace TilesEditor
         }
 
         loadTileObjects();
-
-		auto timer = new QTimer();
-		timer->start(300);
-
-		connect(timer, &QTimer::timeout, this, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
 
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::openFile);
         connect(ui.actionNew, &QAction::triggered, this, &MainWindow::newLevel);

@@ -29,9 +29,11 @@ namespace TilesEditor::RC {
 			TSLFunc[LI_SVRLIST] = &RCConnection::msgSVRLIST;
 		} else {
 			TSLFunc[PLO_DISCMESSAGE] = &RCConnection::msgDISCMESSAGE;
-			TSLFunc[PLO_RC_CHAT] = &RCConnection::msgRC_CHAT;
-			TSLFunc[PLO_RC_FILEBROWSER_DIR] = &RCConnection::msgRC_FILEBROWSER_DIR;
 			TSLFunc[PLO_RC_FILEBROWSER_DIRLIST] = &RCConnection::msgRC_FILEBROWSER_DIRLIST;
+			TSLFunc[PLO_RC_FILEBROWSER_DIR] = &RCConnection::msgRC_FILEBROWSER_DIR;
+			TSLFunc[PLO_RC_FILEBROWSER_MESSAGE] = &RCConnection::msgRC_FILEBROWSER_MESSAGE;
+			TSLFunc[PLO_RC_CHAT] = &RCConnection::msgRC_CHAT;
+			TSLFunc[PLO_SIGNATURE] = &RCConnection::msgSIGNATURE;
 		}
 
 		// Finished
@@ -197,13 +199,13 @@ namespace TilesEditor::RC {
 		auto currentTimer = std::chrono::high_resolution_clock::now();
 
 		TilesEditor::RC::RCConnection *connection = TilesEditor::RC::RCConnection::getInstance();
+		connection->sockManager.update(0, 5000);		// 5ms
 
 		// Every second, do some events.
 		auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(
 				currentTimer - connection->lastTimer);
 		if (time_diff.count() >= 1000) {
 			connection->lastTimer = currentTimer;
-			connection->sockManager.update(0, 5000);		// 5ms
 
 			connection->doTimedEvents();
 		}
@@ -303,7 +305,7 @@ namespace TilesEditor::RC {
 			in_codec.setGen(ENCRYPT_GEN_5);
 			in_codec.reset(key);
 
-			sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_START);
+			sendPacket(CString() >> (char)PLI_PLAYERPROPS >> (char)0 >> (char)_nickname.size() << _nickname);
 		}
 
 		// Return Connection-Status
@@ -349,11 +351,23 @@ namespace TilesEditor::RC {
 		qDebug() << status.text() << "\n";
 	}
 
+	void RCConnection::msgSIGNATURE(CString& pPacket)
+	{
+		pPacket.readString("\n");
+		sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_START);
+	}
+
 	void RCConnection::msgRC_CHAT(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
 		std::cout << status.text() << std::endl;
 		QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgRC_FILEBROWSER_MESSAGE(CString& pPacket)
+	{
+		auto message = pPacket.readString("\n");
+		fileBrowser.addMessage(message.text());
 	}
 
 	void RCConnection::msgRC_FILEBROWSER_DIR(CString& pPacket)

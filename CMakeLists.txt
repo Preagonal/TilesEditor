@@ -142,6 +142,8 @@ set(MainWindow_resource_files
     "icons/fugue/document.png"
     "icons/fugue/eye-close.png"
     "icons/fugue/eye.png"
+    "icons/fugue/blue-folder-horizontal.png"
+    "icons/fugue/blue-folder-horizontal-open.png"
     "icons/fugue/folder-open-document.png"
     "icons/fugue/function.png"
     "icons/fugue/image-export.png"
