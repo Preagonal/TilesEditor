@@ -18,6 +18,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./LevelGraalBaddy.h \
     ./LevelChest.h \
     ./LevelCommands.h \
+    ./LevelGraalBaddy.h \
     ./LevelLink.h \
     ./LevelNPC.h \
     ./LevelSign.h \
@@ -59,6 +60,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./EditExternalNPC.h \
     ./EditTilesetDialog.h \
     ./EditChestDialog.h \
+    ./EditBaddy.h \
     ./ListLinksDialog.h \
     ./SaveOverworldDialog.h \
     ./ObjectsWidget.h \
@@ -101,6 +103,7 @@ SOURCES += ./AboutDialog.cpp \
     ./LevelGraalBaddy.cpp \
     ./LevelChest.cpp \
     ./LevelCommands.cpp \
+    ./LevelGraalBaddy.cpp \
     ./LevelLink.cpp \
     ./LevelNPC.cpp \
     ./LevelSign.cpp \
