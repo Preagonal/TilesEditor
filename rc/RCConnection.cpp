@@ -338,7 +338,7 @@ namespace TilesEditor::RC {
 	void RCConnection::msgNULL(CString& pPacket)
 	{
 		pPacket.setRead(0);
-		printf(":: Unknown Serverlist Packet: %i (%s)", pPacket.readGUChar(), pPacket.text()+1);
+		qDebug() << QString(":: Unknown Serverlist Packet: %1 (%2)").arg(pPacket.readGUChar()).arg(pPacket.text()+1) << "\n";
 		std::cout << std::endl;
 	}
 
@@ -346,7 +346,7 @@ namespace TilesEditor::RC {
 	{
 		auto status = pPacket.readString("\n");
 		std::cout << status.text() << std::endl;
-		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+		qDebug() << status.text() << "\n";
 	}
 
 	void RCConnection::msgRC_CHAT(CString& pPacket)
