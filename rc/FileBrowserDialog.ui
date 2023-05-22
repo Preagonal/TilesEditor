@@ -21,9 +21,11 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0">
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QSplitter" name="splitter">
+       <widget class="QSplitter" name="verticalLayout">
+        <property name="orientation">
+            <enum>Qt::Vertical</enum>
+        </property>
+        <widget class="QSplitter" name="splitter">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -44,8 +46,6 @@
            </property>
           </widget>
          </widget>
-        </item>
-        <item>
          <widget class="QTextEdit" name="textOutput">
           <property name="frameShape">
            <enum>QFrame::Box</enum>
@@ -54,8 +54,7 @@
            <bool>true</bool>
           </property>
          </widget>
-        </item>
-       </layout>
+       </widget>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="currentFolderLabel">

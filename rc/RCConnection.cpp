@@ -341,13 +341,11 @@ namespace TilesEditor::RC {
 	{
 		pPacket.setRead(0);
 		qDebug() << QString(":: Unknown Serverlist Packet: %1 (%2)").arg(pPacket.readGUChar()).arg(pPacket.text()+1) << "\n";
-		std::cout << std::endl;
 	}
 
 	void RCConnection::msgSTATUS(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
-		std::cout << status.text() << std::endl;
 		qDebug() << status.text() << "\n";
 	}
 
@@ -360,8 +358,8 @@ namespace TilesEditor::RC {
 	void RCConnection::msgRC_CHAT(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
-		std::cout << status.text() << std::endl;
-		QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
+		qDebug() << status.text() << "\n";
+
 	}
 
 	void RCConnection::msgRC_FILEBROWSER_MESSAGE(CString& pPacket)
@@ -373,7 +371,8 @@ namespace TilesEditor::RC {
 	void RCConnection::msgRC_FILEBROWSER_DIR(CString& pPacket)
 	{
 		auto folder = pPacket.readChars(pPacket.readGUChar());
-		std::cout << folder.text() << std::endl;
+		qDebug() << folder.text() << "\n";
+
 
 		_files.clear();
 
@@ -419,7 +418,7 @@ namespace TilesEditor::RC {
 	void RCConnection::msgDISCMESSAGE(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
-		std::cout << status.text() << std::endl;
+		qDebug() << status.text() << "\n";
 		QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
 		sock.disconnect();
 	}
@@ -427,7 +426,7 @@ namespace TilesEditor::RC {
 	void RCConnection::msgUPGURL(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
-		std::cout << status.text() << std::endl;
+		qDebug() << status.text() << "\n";
 		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
 		sock.disconnect();
 	}
@@ -435,7 +434,7 @@ namespace TilesEditor::RC {
 	void RCConnection::msgERROR(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
-		std::cout << status.text() << std::endl;
+		qDebug() << status.text() << "\n";
 		//QMessageBox::information(nullptr, "Serverlist Status", status.text(), QMessageBox::Ok);
 		sock.disconnect();
 	}

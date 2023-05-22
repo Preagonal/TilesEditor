@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "MainWindow.h"
 #include "RCConnection.h"
 #include "RCConnectDialog.h"
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 
 	auto timer = new QTimer();
 	timer->start(5);
-	app.connect(timer, &QTimer::timeout, &app, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
+	QApplication::connect(timer, &QTimer::timeout, &app, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
 
 	TilesEditor::MainWindow mw;
 	TilesEditor::RC::RCConnectDialog rc;
@@ -104,5 +106,5 @@ int main(int argc, char *argv[])
 	else
 		rc.show();
 
-	return app.exec();
+	return QApplication::exec();
 }

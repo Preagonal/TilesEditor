@@ -2,7 +2,6 @@
 #ifndef TILESEDITOR_RCCONNECTION_H
 #define TILESEDITOR_RCCONNECTION_H
 
-#include <bits/stdc++.h>
 #include <utility>
 
 #include <CString.h>

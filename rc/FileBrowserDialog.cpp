@@ -1,7 +1,10 @@
 #include <regex>
+#include <chrono>
+#include <format>
 
 #include <QMessageBox>
 #include <QDesktopServices>
+
 #include <IEnums.h>
 #include "FileBrowserDialog.h"
 #include "RCConnection.h"
@@ -170,7 +173,11 @@ namespace TilesEditor::RC {
 			folderStrings.push_back(nameString);
 		}
 
-        buildTree(folderStrings, rootItem);
+		// Sort the vector in ascending order
+		std::sort(folderStrings.begin(), folderStrings.end());
+
+
+		buildTree(folderStrings, rootItem);
 
 		/*
 		//model->setHeaderData(0, Qt::Horizontal, tr(""), Qt::DisplayRole);
@@ -228,12 +235,15 @@ namespace TilesEditor::RC {
 			name->setEditable(false);
 
 			auto rights = new QStandardItem(QString("%1").arg(file.Rights.c_str()));
+			rights->setTextAlignment(Qt::AlignLeft);
 			rights->setEditable(false);
 
 			auto size = new QStandardItem(QString("%1").arg(humanSize(file.Size).c_str()));
+			size->setTextAlignment(Qt::AlignLeft);
 			size->setEditable(false);
 
-			auto modified = new QStandardItem(QString("%1").arg(ctime(&file.ModTime)));
+			auto modified = new QStandardItem(QString("%1").arg(QDateTime::fromSecsSinceEpoch(file.ModTime).toString(Qt::DateFormat::ISODate)));
+			modified->setTextAlignment(Qt::AlignLeft);
 			modified->setEditable(false);
 
 			rowItems << id << name << rights << size << modified;
@@ -252,6 +262,7 @@ namespace TilesEditor::RC {
 		connect(ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::activated);
 		//ui->fileView->setItemDelegate(delegate);
 		ui->fileView->setColumnHidden(0, true);
+		ui->fileView->setAlternatingRowColors(true);
 		//ui->fileView->resizeColumnToContents(0);
 		ui->fileView->resizeColumnToContents(2);
 	}
