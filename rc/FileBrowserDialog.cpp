@@ -189,6 +189,7 @@ namespace TilesEditor::RC {
 
 		ui->directoryView->setModel(model);
 		connect(ui->directoryView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::activated);
+		ui->directoryView->setHeaderHidden(true);
 		//connect(ui->directoryView, &QTreeView::expanded, this, &FileBrowserDialog::directoryExpanded);
 		//ui->fileView->setItemDelegate(delegate);
 		//ui->directoryView->setColumnHidden(0, true);
@@ -272,6 +273,6 @@ namespace TilesEditor::RC {
 	}
 
 	void FileBrowserDialog::addMessage(const std::string &message) {
-		ui->textOutput->append(QString("%1\n").arg(message.c_str()));
+		ui->textOutput->append(QString("%1").arg(message.c_str()));
 	}
 }
