@@ -3,7 +3,6 @@ project(TilesEditor VERSION 1.0 LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
 # Set up AUTOMOC and some sensible defaults for runtime execution
 # When using Qt 6.3, you can replace the code block below with
 # qt_standard_project_setup()
@@ -46,6 +45,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     ListLinksDialog.cpp ListLinksDialog.h ListLinksDialog.ui
     MainFileSystem.cpp MainFileSystem.h
     MainWindow.cpp MainWindow.h MainWindow.ui
+    NewOverworldDialog.cpp NewOverworldDialog.h NewOverworldDialog.ui
     ObjectListModel.cpp ObjectListModel.h
     ObjectSelection.cpp ObjectSelection.h
     ObjectsWidget.cpp ObjectsWidget.h ObjectsWidget.ui
@@ -125,6 +125,8 @@ set(MainWindow_resource_files
     "icons/fugue/arrow-curve-180-left.png"
     "icons/fugue/arrow-curve.png"
     "icons/fugue/block.png"
+    "icons/fugue/blue-folder-horizontal-open.png"
+    "icons/fugue/blue-folder-horizontal.png"
     "icons/fugue/burn.png"
     "icons/fugue/chain--pencil.png"
     "icons/fugue/chain--plus.png"
@@ -143,8 +145,6 @@ set(MainWindow_resource_files
     "icons/fugue/document.png"
     "icons/fugue/eye-close.png"
     "icons/fugue/eye.png"
-    "icons/fugue/blue-folder-horizontal.png"
-    "icons/fugue/blue-folder-horizontal-open.png"
     "icons/fugue/folder-open-document.png"
     "icons/fugue/function.png"
     "icons/fugue/image-export.png"
