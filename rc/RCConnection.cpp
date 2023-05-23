@@ -371,7 +371,7 @@ namespace TilesEditor::RC {
 			files[currentFile] = data.subString(0, data.length() - 1);
 
 		if (!receivingLargeFile) {
-			files[currentFile].save(currentFile);
+			//files[currentFile].save(currentFile);
 
 			if (!rcMode) {
 				bool requested = false;
@@ -384,7 +384,7 @@ namespace TilesEditor::RC {
 				}
 
 				if (!requested)
-					mw->openLevelFilename(currentFile.c_str());
+					mw->openLevelFilename(currentFile.c_str(), this);
 			}
 		}
 		//QMessageBox::information(nullptr, "Serverlist Status", currentFileData.text(), QMessageBox::Ok);
@@ -404,7 +404,7 @@ namespace TilesEditor::RC {
 		receivingLargeFile = false;
 
 		if (!receivingLargeFile) {
-			files[currentFile].save(currentFile);
+			//files[currentFile].save(currentFile);
 		}
 		currentFileData.clear();
 	}

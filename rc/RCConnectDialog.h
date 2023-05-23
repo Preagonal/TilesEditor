@@ -14,13 +14,11 @@ namespace TilesEditor::RC {
 
 	public:
 		explicit RCConnectDialog(QWidget *parent = nullptr);
-		void setMainWindow(TilesEditor::MainWindow* pWindow) { mainWindow = pWindow; };
 
 		~RCConnectDialog() override;
 
 	private:
 		Ui::RCConnectDialog ui{};
-		TilesEditor::MainWindow* mainWindow;
 
 		void okClicked();
 		void cancelClicked();

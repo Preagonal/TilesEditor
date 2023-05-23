@@ -129,9 +129,10 @@ namespace TilesEditor
         QMainWindow::closeEvent(event);
     }
 
-    EditorTabWidget* MainWindow::createNewTab()
+    EditorTabWidget * MainWindow::createNewTab(AbstractFileSystem *fs)
     {
-        auto tabPage = new EditorTabWidget(nullptr, &m_mainFileSystem);
+		auto fileSystem = fs ? fs : &m_mainFileSystem;
+        auto tabPage = new EditorTabWidget(nullptr, fileSystem);
         tabPage->getResourceManager().mergeSearchDirectories(m_resourceManager);
 
         tabPage->init(&m_tilesetList, &m_tileGroupsList);
@@ -142,9 +143,9 @@ namespace TilesEditor
         return tabPage;
     }
 
-    EditorTabWidget* MainWindow::openLevelFilename(const QString & fileName)
+    EditorTabWidget * MainWindow::openLevelFilename(const QString &fileName, AbstractFileSystem *fs)
     {
-        auto tabPage = createNewTab();
+        auto tabPage = createNewTab(fs);
 
         QFileInfo fi(fileName);
 
@@ -164,7 +165,7 @@ namespace TilesEditor
 
         if (!fileName.isEmpty())
         {
-            openLevelFilename(fileName);
+			openLevelFilename(fileName, nullptr);
         }
     }
 
@@ -198,7 +199,7 @@ namespace TilesEditor
         QString fullPath;
         if (sourceTab->getResourceManager().locateFile(levelName, &fullPath))
         {
-            auto tab = openLevelFilename(fullPath);
+            auto tab = openLevelFilename(fullPath, nullptr);
 
             if (tab && tab != sourceTab)
             {

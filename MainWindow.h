@@ -8,6 +8,7 @@
 #include "ResourceManager.h"
 #include "EditorTabWidget.h"
 #include "MainFileSystem.h"
+#include "RCConnection.h"
 
 namespace TilesEditor
 {
@@ -29,7 +30,7 @@ namespace TilesEditor
         MainWindow(QWidget* parent = nullptr);
         ~MainWindow();
 
-        EditorTabWidget* openLevelFilename(const QString& fileName);
+        EditorTabWidget *openLevelFilename(const QString &fileName, AbstractFileSystem *fs = nullptr);
 
     private:
         Ui::MainWindowClass ui{};
@@ -47,7 +48,7 @@ namespace TilesEditor
         void loadTileObjects();
         bool closeTabIndex(int index);
         void closeEvent(QCloseEvent* event) override;
-        EditorTabWidget* createNewTab();
+        EditorTabWidget *createNewTab(AbstractFileSystem *fs = nullptr);
 
     };
 }

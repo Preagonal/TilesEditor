@@ -46,11 +46,12 @@ namespace TilesEditor
 
 	bool Overworld::loadFile(ResourceManager& resourceManager)
 	{
-		QFile file(m_fileName);
 
-		if (file.open(QIODeviceBase::ReadOnly))
+		QIODevice* file = resourceManager.getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
+
+		if (file->open(QIODevice::ReadOnly))
 		{
-			return loadStream(&file, resourceManager);
+			return loadStream(file, resourceManager);
 		}
 		return false;
 	}
@@ -75,7 +76,7 @@ namespace TilesEditor
 		for (QString line = textStream.readLine(); !line.isNull(); line = textStream.readLine())
 			lines.push_back(line);
 
-		if (lines.size() > 0)
+		if (!lines.empty())
 		{
 			m_gmapFileLines.clear();
 
@@ -88,7 +89,7 @@ namespace TilesEditor
 				size_t wordCount;
 
 				auto words = line.split(' ');
-			
+
 				if (!words.isEmpty())
 				{
 					wordCount = words.size();
@@ -158,7 +159,7 @@ namespace TilesEditor
 		QTextStream textStream(stream);
 		for (QString line = textStream.readLine(); !line.isNull(); line = textStream.readLine())
 			lines.push_back(line);
-		
+
 
 		if (lines.size() > 0)
 		{
@@ -341,7 +342,7 @@ namespace TilesEditor
 
 		if(!m_tilesetName.isEmpty())
 			stream << "TILESET " << m_tilesetName << Qt::endl;
-		
+
 		return true;
 	}
 
@@ -371,7 +372,7 @@ namespace TilesEditor
 			free(levelText);
 
 			return true;
-			
+
 		}
 		return false;
 	}

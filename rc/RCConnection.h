@@ -8,9 +8,12 @@
 #include <CSocket.h>
 #include <CEncryption.h>
 #include <CFileQueue.h>
+#include <regex>
 
 #include "ServerListDialog.h"
 #include "FileBrowserDialog.h"
+#include "AbstractFileSystem.h"
+#include "RCIODevice.h"
 
 using namespace std;
 namespace TilesEditor::RC {
@@ -25,7 +28,7 @@ namespace TilesEditor::RC {
 		LI_GRSECURELOGIN	= 223
 	};
 
-	class RCConnection : public CSocketStub {
+	class RCConnection : public CSocketStub, public AbstractFileSystem {
 		protected:
 			// Packet functions.
 			bool parsePacket(CString& pPacket);
@@ -79,6 +82,28 @@ namespace TilesEditor::RC {
 			SOCKET getSocketHandle() override	{ return sock.getHandle(); }
 			bool canRecv() override;
 			bool canSend() override				{ return _fileQueue.canSend(); }
+
+			// Required by AbstractFileSystem
+			QStringList getFolders(const QString& parent) override {
+				QStringList list{};
+
+				for (const auto& folder : _folders) {
+					list.append(std::regex_replace(folder.Name, std::regex("\\*"), "").c_str());
+				}
+
+				return list;
+			};
+
+			bool fileExists(const QString& fileName) override {
+				return true;
+			};
+
+			QIODevice* openStream(const QString& fileName, QIODeviceBase::OpenModeFlag mode) override {
+				return new RCIODevice(nullptr, fileName);
+			};
+
+			//this is called when a file has finished being written to. also delete the stream object in this function
+			void endWrite(const QString& fileName, QIODevice* stream) override {};
 
 			RCConnection(const RCConnection &obj)
 			= delete;

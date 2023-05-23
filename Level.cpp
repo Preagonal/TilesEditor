@@ -96,12 +96,11 @@ namespace TilesEditor
 
     bool Level::loadFile(ResourceManager& resourceManager)
     {
-        QFile file(m_fileName);
+		QIODevice* file = resourceManager.getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
 
-        if (file.open(QIODeviceBase::ReadOnly))
+        if (file->open(QIODeviceBase::ReadOnly))
         {
-            loadStream(&file, resourceManager);
-            
+            loadStream(file, resourceManager);
         }
         return !m_loadFail;
     }
@@ -122,9 +121,9 @@ namespace TilesEditor
 
     bool Level::loadNWStream(QIODevice* stream, ResourceManager& resourceManager)
     {
-        
+
         QStringList lines;
-        
+
         QTextStream textStream(stream);
         for (QString line = textStream.readLine(); !line.isNull(); line = textStream.readLine())
             lines.push_back(line);
@@ -249,7 +248,7 @@ namespace TilesEditor
                         }
                         else if (words[0] == "SIGN" && wordCount >= 3)
                         {
-                            
+
                             auto sign = new LevelSign(this,
                                 getX() + words[1].toDouble() * 16,
                                 getY() + words[2].toDouble() * 16,
@@ -279,7 +278,7 @@ namespace TilesEditor
 
                             for (++i; i < lineCount && lines[i] != "NPCEND"; ++i)
                                 code += lines[i] + "\n";
-                            
+
                             QString className = "";
 
                             auto levelNPC = new LevelNPC(this, x + getX(), y + getY(), width, height);
@@ -292,7 +291,7 @@ namespace TilesEditor
                 m_loaded = true;
                 return true;
             }
-            
+
             return false;
         }
         return false;
@@ -855,7 +854,7 @@ namespace TilesEditor
         stream << "GLEVNW01" << Qt::endl;
 
         auto writeTileLayer = [](QTextStream& stream, Tilemap* tilemap)
-        { 
+        {
             for (int top = 0; top < 64; ++top)
             {
                 for(int left = 0; left < 64; ++left)
@@ -902,7 +901,7 @@ namespace TilesEditor
         for (auto layer : m_tileLayers)
         {
             writeTileLayer(stream, layer);
-                
+
         }
         stream << Qt::endl;
 
@@ -1061,7 +1060,7 @@ namespace TilesEditor
                 {
                     if (obj->getEntityType() == LevelEntityType::ENTITY_NPC)
                     {
-                            
+
                         auto npc = static_cast<LevelNPC*>(obj);
                         char x = 32 + char((npc->getX() - this->getX()) / 16.0);
                         char y = 32 + char((npc->getY() - this->getY()) / 16.0);
@@ -1083,7 +1082,7 @@ namespace TilesEditor
                 stream->write("\n");
 
             }
-                
+
             //chests
             {
                 static QStringList itemNames = {
@@ -1149,7 +1148,7 @@ namespace TilesEditor
             {
                 auto encodeSign = [](const QString& pText) -> QByteArray
                 {
-                        
+
                     static const QString signText = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                         "0123456789!?-.,#>()#####\"####':/~&### <####;\n";
                     static const QString signSymbols = "ABXYudlrhxyz#4.";
@@ -1159,11 +1158,11 @@ namespace TilesEditor
 
                     QByteArray retVal;
                     int txtLen = pText.length();
-                        
+
                     for (int i = 0; i < txtLen; i++)
                     {
                         auto letter = pText[i].unicode();
-                            
+
                         if (letter == '#')
                         {
                             i++;
@@ -1246,7 +1245,7 @@ namespace TilesEditor
 
 
                             auto jsonChunk = cJSON_CreateArray();
-                            
+
                             cJSON_AddItemToArray(jsonChunk, cJSON_CreateNumber(left));
                             cJSON_AddItemToArray(jsonChunk, cJSON_CreateNumber(top));
 
@@ -1259,7 +1258,7 @@ namespace TilesEditor
                                 int tile = tilemap->getTile(left, top);
 
                                 do {
-                                 
+
                                     tileString = base64[tile & 0x3F] + tileString;
                                     tile = tile >> 6;
                                 } while (tile != 0);
@@ -1284,7 +1283,7 @@ namespace TilesEditor
 
         };
 
-        
+
         auto jsonRoot = cJSON_CreateObject();
 
         cJSON_AddStringToObject(jsonRoot, "type", "level");
@@ -1294,7 +1293,7 @@ namespace TilesEditor
 
         if (!m_tilesetName.isEmpty())
             cJSON_AddStringToObject(jsonRoot, "tileset", m_tilesetName.toLocal8Bit().data());
-            
+
 
         if (m_tileLayers.size() > 0)
         {
@@ -1352,7 +1351,7 @@ namespace TilesEditor
                 cJSON_AddStringToObject(jsonLink, "destinationX", link->getNextX().toLocal8Bit().data());
                 cJSON_AddStringToObject(jsonLink, "destinationY", link->getNextY().toLocal8Bit().data());
                 cJSON_AddItemToArray(jsonLinks, jsonLink);
-      
+
             }
 
             cJSON_AddItemToObject(jsonRoot, "links", jsonLinks);
@@ -1521,6 +1520,6 @@ namespace TilesEditor
 
         if(index == 0)
             m_mainTileLayer = tilemap;
-        
+
     }
 };

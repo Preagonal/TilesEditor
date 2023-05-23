@@ -95,6 +95,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     rc/FileBrowserDialog.cpp rc/FileBrowserDialog.h rc/FileBrowserDialog.ui
     rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
     rc/RCConnection.cpp rc/RCConnection.h
+        rc/RCIODevice.cpp rc/RCIODevice.h
     rc/Server.h
     rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
 )
