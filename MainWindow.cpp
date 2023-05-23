@@ -163,7 +163,6 @@ namespace TilesEditor
         if (!fileName.isEmpty())
         {
             openLevelFilename(fileName);
-
         }
     }
 
@@ -256,14 +255,18 @@ namespace TilesEditor
 
     void MainWindow::rcClicked(bool checked)
     {
-        RC::RCConnectDialog frm;
-        frm.exec();
+		auto* connection = RC::RCConnection::getInstance();
+		if (!connection->getConnected()) {
+			RC::RCConnectDialog frm;
+			frm.exec();
+		} else {
+			connection->openFileBrowser();
+		}
     }
 
     void MainWindow::closeTabIndexSlot(int index)
     {
         closeTabIndex(index);
-
     }
 
     void MainWindow::takeWidgetIntoDock(QWidget* dockContainer, QWidget* target)
