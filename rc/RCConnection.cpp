@@ -4,6 +4,11 @@
 #include <IEnums.h>
 #include <QMessageBox>
 #include "RCConnection.h"
+#include "MainWindow.h"
+
+extern TilesEditor::MainWindow* mw;
+extern bool rcMode;
+
 
 namespace TilesEditor::RC {
 	/*
@@ -34,6 +39,11 @@ namespace TilesEditor::RC {
 			TSLFunc[PLO_RC_FILEBROWSER_MESSAGE] = &RCConnection::msgRC_FILEBROWSER_MESSAGE;
 			TSLFunc[PLO_RC_CHAT] = &RCConnection::msgRC_CHAT;
 			TSLFunc[PLO_SIGNATURE] = &RCConnection::msgSIGNATURE;
+			TSLFunc[PLO_RAWDATA] = &RCConnection::msgRAWDATA;
+			TSLFunc[PLO_FILE] = &RCConnection::msgFILE;
+			TSLFunc[PLO_LARGEFILESTART] = &RCConnection::msgLARGEFILESTART;
+			TSLFunc[PLO_LARGEFILEEND] = &RCConnection::msgLARGEFILEEND;
+			//TSLFunc[PLO_LARGEFILESIZE] = &RCConnection::msgLARGEFILESIZE;
 		}
 
 		// Finished
@@ -343,6 +353,62 @@ namespace TilesEditor::RC {
 		qDebug() << QString(":: Unknown Serverlist Packet: %1 (%2)").arg(pPacket.readGUChar()).arg(pPacket.text()+1) << "\n";
 	}
 
+	void RCConnection::msgRAWDATA(CString& pPacket)
+	{
+		nextIsRaw = true;
+		rawPacketSize = pPacket.readGUInt();
+	}
+
+	void RCConnection::msgFILE(CString& pPacket)
+	{
+		currentFileModTime = pPacket.readGUInt5();
+		currentFile = pPacket.readChars(pPacket.readGUChar()).text();
+		auto data = pPacket.readString("");
+
+		if (receivingLargeFile)
+			files[currentFile] << data.subString(0, data.length() - 1);
+		else
+			files[currentFile] = data.subString(0, data.length() - 1);
+
+		if (!receivingLargeFile) {
+			files[currentFile].save(currentFile);
+
+			if (!rcMode) {
+				bool requested = false;
+
+				for (const std::string& requestedFile : requestedFiles) {
+					if (requestedFile == currentFile) {
+						requested = true;
+						break;
+					}
+				}
+
+				if (!requested)
+					mw->openLevelFilename(currentFile.c_str());
+			}
+		}
+		//QMessageBox::information(nullptr, "Serverlist Status", currentFileData.text(), QMessageBox::Ok);
+	}
+
+	void RCConnection::msgLARGEFILESTART(CString& pPacket)
+	{
+		currentFile = pPacket.readString("").text();
+		files[currentFile] = CString();
+		receivingLargeFile = true;
+		currentFileData.clear();
+	}
+
+	void RCConnection::msgLARGEFILEEND(CString& pPacket)
+	{
+		pPacket.readString("");
+		receivingLargeFile = false;
+
+		if (!receivingLargeFile) {
+			files[currentFile].save(currentFile);
+		}
+		currentFileData.clear();
+	}
+
 	void RCConnection::msgSTATUS(CString& pPacket)
 	{
 		auto status = pPacket.readString("\n");
@@ -490,6 +556,19 @@ namespace TilesEditor::RC {
 		// Create Functions
 		if (!RCConnection::created)
 			RCConnection::createFunctions();
+	}
+
+	map<string, CString> RCConnection::getFiles() {
+		return files;
+	}
+
+	void RCConnection::requestFile(string fileName) {
+		sendPacket(CString() >> (char)PLI_WANTFILE << fileName);
+		requestedFiles.push_back(fileName);
+	}
+
+	void RCConnection::openFileBrowser() {
+		fileBrowser.open();
 	}
 }
 #pragma clang diagnostic pop

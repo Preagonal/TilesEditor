@@ -5,7 +5,7 @@
 #include "RCConnectDialog.h"
 #include <QtWidgets/QApplication>
 
-static bool rcMode = false;
+bool rcMode = false;
 
 void printHelp(const char* pname)
 {
@@ -58,9 +58,11 @@ bool parseArgs(int argc, char* argv[])
 	return false;
 }
 
+TilesEditor::MainWindow* mw;
+
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+	QApplication app(argc, argv);
 
 	parseArgs(argc, argv);
 
@@ -98,13 +100,14 @@ int main(int argc, char *argv[])
 	timer->start(5);
 	QApplication::connect(timer, &QTimer::timeout, &app, QOverload<>::of(&TilesEditor::RC::RCConnection::mainLoop));
 
-	TilesEditor::MainWindow mw;
+	mw = new TilesEditor::MainWindow();
 	TilesEditor::RC::RCConnectDialog rc;
 
-	if (!rcMode)
-		mw.show();
-	else
+	if (!rcMode) {
+		mw->show();
+	} else {
 		rc.show();
+	}
 
 	return QApplication::exec();
 }

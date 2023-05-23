@@ -1,6 +1,5 @@
 #include <regex>
 #include <chrono>
-#include <format>
 
 #include <QMessageBox>
 #include <QDesktopServices>
@@ -17,8 +16,10 @@ namespace TilesEditor::RC {
 		ui->setupUi(this);
 
 		connect(ui->closeButton, &QPushButton::clicked, this, &FileBrowserDialog::closeClicked);
+		connect(ui->fileView, &QTreeView::doubleClicked, this, &FileBrowserDialog::doubleClicked);
 
 		this->setWindowTitle("File Browser");
+		this->setWindowIcon(QPixmap(""));
 	}
 
 	FileBrowserDialog::~FileBrowserDialog() {
@@ -27,7 +28,11 @@ namespace TilesEditor::RC {
 
 	void FileBrowserDialog::okClicked()
 	{
+		auto file = _files[selected];
 
+		auto* connection = RCConnection::getInstance();
+
+		connection->sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_DOWN << file.Name);
 	}
 
 	void FileBrowserDialog::doubleClicked(const QModelIndex &index) {
@@ -220,7 +225,7 @@ namespace TilesEditor::RC {
 		fileModel->setHeaderData(4, Qt::Horizontal, tr("Modified"), Qt::DisplayRole);
 
 		ui->fileView->setModel(fileModel);
-		connect(ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::activated);
+		connect(ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &FileBrowserDialog::fileSelectionChanged);
 		ui->fileView->setColumnHidden(0, true);
 		ui->fileView->setAlternatingRowColors(true);
 		ui->fileView->resizeColumnToContents(2);
@@ -232,5 +237,16 @@ namespace TilesEditor::RC {
 
 	void FileBrowserDialog::addMessage(const std::string &message) {
 		ui->textOutput->append(QString("%1").arg(message.c_str()));
+	}
+
+	void FileBrowserDialog::fileSelectionChanged(const QItemSelection &selectedRow, const QItemSelection &deselectedRow) {
+		QModelIndexList selectedIndexes = selectedRow.indexes();
+		if (!selectedIndexes.isEmpty()) {
+			const QModelIndex& index = selectedIndexes.first();
+			// Get the index for column 0 of the selected index
+			QModelIndex column0Index = index.sibling(index.row(), 0);
+
+			selected = atoi(column0Index.data(Qt::DisplayRole).value<QString>().toStdString().c_str());
+		}
 	}
 }

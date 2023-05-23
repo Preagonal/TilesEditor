@@ -33,6 +33,7 @@ namespace TilesEditor::RC {
 		void activated(const QItemSelection& selectedRow, const QItemSelection& deselectedRow);
 		void closeClicked(bool checked = false);
 		void homepageClicked(bool checked = false);
+		void fileSelectionChanged(const QItemSelection& selectedRow, const QItemSelection& deselectedRow);
 
 		void buildTree(const std::vector<std::string>& strings, QStandardItem* parentItem);
 		static QStandardItem* findChildItem(const std::string& name, QStandardItem* parentItem);
@@ -48,6 +49,8 @@ namespace TilesEditor::RC {
 		QStandardItemModel* directoryModel;
 
 		static std::string humanSize(uint64_t bytes);
+
+
 	};
 }
 #endif // FILEBROWSERDIALOG_H

@@ -46,6 +46,11 @@ namespace TilesEditor::RC {
 			std::string _serverRemoteIp;
 
 		private:
+			bool receivingLargeFile = false;
+			std::string currentFile;
+			CString currentFileData;
+			std::map<std::string,CString> files;
+			time_t currentFileModTime;
 			std::vector<File> _files;
 			std::vector<Folder> _folders;
 			string _account, _password, _nickname, _currentFolder;
@@ -115,6 +120,10 @@ namespace TilesEditor::RC {
 			void connect();
 
 			void msgNULL(CString& pPacket);
+			void msgRAWDATA(CString& pPacket);
+			void msgFILE(CString& pPacket);
+			void msgLARGEFILESTART(CString& pPacket);
+			void msgLARGEFILEEND(CString& pPacket);
 
 			// Listserver Packets
 			void msgSTATUS(CString& pPacket);
@@ -129,6 +138,14 @@ namespace TilesEditor::RC {
 			void msgRC_FILEBROWSER_DIR(CString& pPacket);
 			void msgRC_FILEBROWSER_DIRLIST(CString& pPacket);
 			void msgRC_FILEBROWSER_MESSAGE(CString& pPacket);
+
+		map<string, CString> getFiles();
+
+		void requestFile(string fileName);
+
+		void openFileBrowser();
+
+		std::vector<std::string> requestedFiles;
 	};
 }
 #endif //TILESEDITOR_RCCONNECTION_H
