@@ -7,6 +7,7 @@
 #include "TileGroupListModel.h"
 #include "ResourceManager.h"
 #include "EditorTabWidget.h"
+#include "MainFileSystem.h"
 
 namespace TilesEditor
 {
@@ -33,6 +34,7 @@ namespace TilesEditor
     private:
         Ui::MainWindowClass ui{};
 
+        MainFileSystem m_mainFileSystem;
         ResourceManager m_resourceManager;
         QStandardItemModel m_tilesetList;
         TileGroupListModel m_tileGroupsList;

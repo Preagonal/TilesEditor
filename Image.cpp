@@ -9,11 +9,11 @@ namespace TilesEditor
         m_pixmap = pixmap;
     }
 
-    void Image::replace(const QString& fileName)
+    void Image::replace(QIODevice* stream)
     {
         QPixmap pixmap;
 
-        if (pixmap.load(fileName))
+        if (pixmap.loadFromData(stream->readAll()))
         {
             m_pixmap = pixmap;
         }
@@ -24,11 +24,11 @@ namespace TilesEditor
         painter->drawPixmap((int)x, (int)y, this->pixmap());
     }
 
-    Image* Image::load(const QString& assetName, const QString& fileName)
+    Image* Image::load(const QString& assetName, QIODevice* stream)
     {
         QPixmap pixmap;
 
-        if (pixmap.load(fileName))
+        if (pixmap.loadFromData(stream->readAll()))
         {
             return new Image(assetName, pixmap);
         }

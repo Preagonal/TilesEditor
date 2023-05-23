@@ -79,7 +79,8 @@ HEADERS += ./AbstractFileSystem.h \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditor.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorHighlighter.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorLineWidget.hpp \
-    ./QCodeEditor/include/KGL/Widgets/QCodeEditorPopup.hpp
+    ./QCodeEditor/include/KGL/Widgets/QCodeEditorPopup.hpp \
+    ./NewOverworldDialog.h
 SOURCES += ./AboutDialog.cpp \
     ./rc/RCConnectDialog.cpp \
     ./AbstractLevelEntity.cpp \
@@ -138,7 +139,8 @@ SOURCES += ./AboutDialog.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorHighlighter.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorLineWidget.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorPopup.cpp \
-    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp
+    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp \
+    ./NewOverworldDialog.cpp
 FORMS += ./AboutDialog.ui \
     ./rc/RCConnectDialog.ui \
     ./rc/ServerListDialog.ui \
@@ -157,5 +159,6 @@ FORMS += ./AboutDialog.ui \
     ./SaveOverworldDialog.ui \
     ./ScreenshotDialog.ui \
     ./TileObjectsWidget.ui \
-    ./TilesetsWidget.ui
+    ./TilesetsWidget.ui \
+    ./NewOverworldDialog.ui
 RESOURCES += MainWindow.qrc

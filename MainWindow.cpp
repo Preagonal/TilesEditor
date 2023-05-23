@@ -8,13 +8,13 @@
 #include "RCConnection.h"
 #include "cJSON/JsonHelper.h"
 #include "EditAnonymousNPC.h"
-#include <thread>
+#include "MainFileSystem.h"
 
 namespace TilesEditor
 {
 
     MainWindow::MainWindow(QWidget* parent)
-        : QMainWindow(parent)
+        : QMainWindow(parent), m_resourceManager(&m_mainFileSystem)
     {
         ui.setupUi(this);
         QMainWindow::setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
@@ -131,7 +131,9 @@ namespace TilesEditor
 
     EditorTabWidget* MainWindow::createNewTab()
     {
-        auto tabPage = new EditorTabWidget(nullptr, m_resourceManager);
+        auto tabPage = new EditorTabWidget(nullptr, &m_mainFileSystem);
+        tabPage->getResourceManager().mergeSearchDirectories(m_resourceManager);
+
         tabPage->init(&m_tilesetList, &m_tileGroupsList);
         connect(tabPage, &EditorTabWidget::openLevel, this, &MainWindow::openLevel);
         connect(tabPage, &EditorTabWidget::changeTabText, this, &MainWindow::changeTabText);
