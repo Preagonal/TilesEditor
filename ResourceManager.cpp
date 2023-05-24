@@ -51,7 +51,6 @@ namespace TilesEditor
 
 		for(auto folder: folders)
 		{
-			qDebug() << "FOLDER: " << folder;
 			if (!m_searchDirectories.contains(folder))
 			{
 				m_searchDirectories.insert(folder);
@@ -114,7 +113,7 @@ namespace TilesEditor
 		return "";
 	}
 
-	Resource* ResourceManager::loadResource(const QString& resourceName, ResourceType type)
+	Resource* ResourceManager::loadResource(IFileRequester* requester, const QString& resourceName, ResourceType type)
 	{
 		auto it = m_resources.find(resourceName);
 		if (it != m_resources.end())
@@ -152,15 +151,16 @@ namespace TilesEditor
 				if (res == nullptr)
 				{
 					m_failedResources.insert(resourceName);
+				} else 
+				{
+					res->setFileName(fileName);
+					res->incrementRef();
+					m_resources[resourceName] = res;
 				}
-			}
+			} else 	if (requester)
+				m_fileSystem->requestFile(requester, resourceName);
 
-			if (res != nullptr)
-			{
-				res->setFileName(fileName);
-				res->incrementRef();
-				m_resources[resourceName] = res;
-			}
+
 			return res;
 		}
 		return nullptr;
@@ -203,6 +203,11 @@ namespace TilesEditor
 				delete stream;
 			}
 		}
+	}
+
+	void ResourceManager::addFailedResource(const QString& name)
+	{
+		m_failedResources.insert(name);
 	}
 
 

@@ -6,6 +6,7 @@
 #include <QIODevice>
 #include <QTextStream>
 #include <QStringList>
+#include "IFileRequester.h"
 
 namespace TilesEditor
 {
@@ -27,12 +28,16 @@ namespace TilesEditor
 			return "";
 		}
 
+		//Filename should be name part only. not FULL PATH
+		virtual void requestFile(IFileRequester* requester, const QString& fileName) = 0;
+		virtual void removeListener(IFileRequester* requester) = 0;
+
 		virtual QStringList getFolders(const QString& parent) = 0;
 		virtual bool fileExists(const QString& fileName) = 0;
 		virtual QIODevice* openStream(const QString& fileName, QIODeviceBase::OpenModeFlag mode) = 0;
 
 		//this is called when a file has finished being written to. also delete the stream object in this function
-		virtual void endWrite(const QString& fileName, QIODevice* stream) = 0;
+		virtual void endWrite(IFileRequester* requester, const QString& fileName, QIODevice* stream) = 0;
 	};
 }
 #endif

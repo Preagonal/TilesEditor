@@ -74,6 +74,9 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionAbout"/>
+   <addaction name="separator"/>
+   <addaction name="actionLevelConverter"/>
+   <addaction name="separator"/>
    <addaction name="actionRC"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -200,9 +203,23 @@
     <string>About</string>
    </property>
   </action>
+  <action name="actionLevelConverter">
+   <property name="icon">
+    <iconset resource="MainWindow.qrc">
+     <normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</iconset>
+   </property>
+   <property name="text">
+    <string>Level Converter</string>
+   </property>
+   <property name="toolTip">
+    <string>Level Converter</string>
+   </property>
+  </action>
   <action name="actionRC">
    <property name="icon">
-    <iconset theme="network-transmit-receive"/>
+    <iconset resource="MainWindow.qrc">
+     <normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</iconset>
+   </property>
    </property>
    <property name="text">
     <string>RC</string>

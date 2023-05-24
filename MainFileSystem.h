@@ -18,10 +18,14 @@ namespace TilesEditor
 	public:
 		MainFileSystem();
 
+		void requestFile(IFileRequester* requester, const QString& fileName) override {}
+		void removeListener(IFileRequester* requester) override {}
+
 		QStringList getFolders(const QString& parent) override;
 		bool fileExists(const QString& fileName) override;
 		QIODevice* openStream(const QString& fileName, QIODeviceBase::OpenModeFlag mode) override;
-		void endWrite(const QString& fileName, QIODevice* stream) override {
+
+		void endWrite(IFileRequester* requester, const QString& fileName, QIODevice* stream) override {
 			delete stream;
 
 		}

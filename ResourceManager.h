@@ -12,6 +12,7 @@
 #include "ResourceType.h"
 
 #include "AbstractFileSystem.h"
+#include "IFileRequester.h"
 
 namespace TilesEditor
 {
@@ -57,10 +58,11 @@ namespace TilesEditor
 		QString readTextFile(const QString& fileName);
 
 		AbstractFileSystem* getFileSystem() { return m_fileSystem; }
-		Resource* loadResource(const QString& name, ResourceType type);
+		Resource* loadResource(IFileRequester* requester, const QString& name, ResourceType type);
 		void freeResource(Resource* resource);
 		void updateResource(const QString& name);
 
+		void addFailedResource(const QString& name);
 		static QString formatResName(const QString& resName)
 		{
 			return resName.toLower();

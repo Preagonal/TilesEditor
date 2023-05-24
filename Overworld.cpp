@@ -10,8 +10,9 @@
 
 namespace TilesEditor
 {
-	Overworld::Overworld(const QString& name)
+	Overworld::Overworld(IWorld* world, const QString& name)
 	{
+		m_world = world;
 		m_json = nullptr;
 		m_name = name;
 		m_levelMap = nullptr;
@@ -37,39 +38,39 @@ namespace TilesEditor
 
 	}
 
-	void Overworld::release(ResourceManager& resourceManager)
+	void Overworld::release()
 	{
 		for (auto level : m_levelNames)
-			level->release(resourceManager);
+			level->release();
 	}
 
 
-	bool Overworld::loadFile(ResourceManager& resourceManager)
+	bool Overworld::loadFile()
 	{
 
 		QIODevice* file = resourceManager.getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
 
 		if (file->open(QIODevice::ReadOnly))
 		{
-			return loadStream(file, resourceManager);
+			return loadStream(file);
 		}
 		return false;
 	}
 
-	bool Overworld::loadStream(QIODevice* stream, ResourceManager& resourceManager)
+	bool Overworld::loadStream(QIODevice* stream)
 	{
 		if (m_name.endsWith(".gmap"))
-			return loadGMapStream(stream, resourceManager);
+			return loadGMapStream(stream);
 
 		else if (m_name.endsWith(".txt"))
-			return loadTXTStream(stream, resourceManager);
+			return loadTXTStream(stream);
 
 		else if (m_name.endsWith(".world"))
-			return loadWorldStream(stream, resourceManager);
+			return loadWorldStream(stream);
 		return false;
 	}
 
-	bool Overworld::loadGMapStream(QIODevice* stream, ResourceManager& resourceManager)
+	bool Overworld::loadGMapStream(QIODevice* stream)
 	{
 		QStringList lines;
 		QTextStream textStream(stream);
@@ -134,7 +135,7 @@ namespace TilesEditor
 										auto levelX = x * (64.0 * 16);
 										auto levelY = y * (64.0 * 16);
 
-										auto level = new Level(levelX, levelY, 64 * 16, 64 * 16, this, levelName);
+										auto level = new Level(m_world, levelX, levelY, 64 * 16, 64 * 16, this, levelName);
 
 										m_levelMap->add(level);
 
@@ -152,7 +153,7 @@ namespace TilesEditor
 		return false;
 	}
 
-	bool Overworld::loadTXTStream(QIODevice* stream, ResourceManager& resourceManager)
+	bool Overworld::loadTXTStream(QIODevice* stream)
 	{
 		QStringList lines;
 
@@ -193,7 +194,7 @@ namespace TilesEditor
 							auto levelX = x * (64.0 * 16);
 							auto levelY = y * (64.0 * 16);
 
-							auto level = new Level(levelX, levelY, 64 * 16, 64 * 16, this, levelName);
+							auto level = new Level(m_world, levelX, levelY, 64 * 16, 64 * 16, this, levelName);
 
 							m_levelMap->add(level);
 
@@ -210,7 +211,7 @@ namespace TilesEditor
 		return false;
 	}
 
-	bool Overworld::loadWorldStream(QIODevice* stream, ResourceManager& resourceManager)
+	bool Overworld::loadWorldStream(QIODevice* stream)
 	{
 		if (m_json) {
 			cJSON_Delete(m_json);
@@ -265,7 +266,7 @@ namespace TilesEditor
 										auto levelHeight = defaultLevelHeight;
 
 
-										auto level = new Level(nextLevelX, nextLevelY, levelWidth, levelHeight, this, levelName);
+										auto level = new Level(m_world, nextLevelX, nextLevelY, levelWidth, levelHeight, this, levelName);
 										m_levelMap->add(level);
 										m_levelNames[levelName] = level;
 										nextLevelX += levelWidth;
@@ -275,7 +276,7 @@ namespace TilesEditor
 										auto levelName = jsonGetChildString(jsonItem, "name");
 										auto levelWidth = jsonGetChildInt(jsonItem, "width") * 16;
 										auto levelHeight = jsonGetChildInt(jsonItem, "height") * 16;
-										auto level = new Level(nextLevelX, nextLevelY, levelWidth, levelHeight, this, levelName);
+										auto level = new Level(m_world, nextLevelX, nextLevelY, levelWidth, levelHeight, this, levelName);
 										m_levelMap->add(level);
 										m_levelNames[levelName] = level;
 										nextLevelX += levelWidth;
@@ -298,14 +299,14 @@ namespace TilesEditor
 		return false;
 	}
 
-	bool Overworld::saveFile(ResourceManager& resourceManager)
+	bool Overworld::saveFile(IFileRequester* requester)
 	{
-		auto stream = resourceManager.getFileSystem()->openStream(m_fileName, QIODevice::WriteOnly);
+		auto stream = m_world->getResourceManager().getFileSystem()->openStream(m_fileName, QIODevice::WriteOnly);
 
 		if (stream)
 		{
 			auto retval = saveStream(stream);
-			resourceManager.getFileSystem()->endWrite(m_fileName, stream);
+			m_world->getResourceManager().getFileSystem()->endWrite(requester, m_fileName, stream);
 
 			return retval;
 		}
@@ -418,17 +419,17 @@ namespace TilesEditor
 		return 0;
 	}
 
-	void Overworld::preloadLevels(ResourceManager& resourceManager)
+	void Overworld::preloadLevels()
 	{
 		for (auto level : m_levelNames)
 		{
 			if (!level->getLoaded())
 			{
 				QString fullPath;
-				if (resourceManager.locateFile(level->getName(), &fullPath))
+				if (m_world->getResourceManager().locateFile(level->getName(), &fullPath))
 				{
 					level->setFileName(fullPath);
-					level->loadFile(resourceManager);
+					level->loadFile();
 				}
 			}
 		}

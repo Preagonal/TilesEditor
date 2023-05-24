@@ -61,7 +61,9 @@ HEADERS += ./AbstractFileSystem.h \
     ./EditTilesetDialog.h \
     ./EditChestDialog.h \
     ./EditBaddy.h \
+    ./LevelConverter.h \
     ./ListLinksDialog.h \
+    ./NewOverworldDialog.h \
     ./SaveOverworldDialog.h \
     ./ObjectsWidget.h \
     ./ScreenshotDialog.h \
@@ -80,7 +82,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorHighlighter.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorLineWidget.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorPopup.hpp \
-    ./NewOverworldDialog.h
+    ./IFileRequester.h
 SOURCES += ./AboutDialog.cpp \
     ./rc/RCConnectDialog.cpp \
     ./AbstractLevelEntity.cpp \
@@ -104,12 +106,14 @@ SOURCES += ./AboutDialog.cpp \
     ./LevelGraalBaddy.cpp \
     ./LevelChest.cpp \
     ./LevelCommands.cpp \
+    ./LevelConverter.cpp \
     ./LevelGraalBaddy.cpp \
     ./LevelLink.cpp \
     ./LevelNPC.cpp \
     ./LevelSign.cpp \
     ./ListLinksDialog.cpp \
     ./MainFileSystem.cpp \
+    ./NewOverworldDialog.cpp \
     ./ObjectListModel.cpp \
     ./ObjectSelection.cpp \
     ./ObjectsWidget.cpp \
@@ -139,8 +143,7 @@ SOURCES += ./AboutDialog.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorHighlighter.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorLineWidget.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorPopup.cpp \
-    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp \
-    ./NewOverworldDialog.cpp
+    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp
 FORMS += ./AboutDialog.ui \
     ./rc/RCConnectDialog.ui \
     ./rc/ServerListDialog.ui \
@@ -153,12 +156,13 @@ FORMS += ./AboutDialog.ui \
     ./EditorTabWidget.ui \
     ./EditSignsDialog.ui \
     ./EditTilesetDialog.ui \
+    ./LevelConverter.ui \
     ./ListLinksDialog.ui \
     ./MainWindow.ui \
+    ./NewOverworldDialog.ui \
     ./ObjectsWidget.ui \
     ./SaveOverworldDialog.ui \
     ./ScreenshotDialog.ui \
     ./TileObjectsWidget.ui \
-    ./TilesetsWidget.ui \
-    ./NewOverworldDialog.ui
+    ./TilesetsWidget.ui
 RESOURCES += MainWindow.qrc
