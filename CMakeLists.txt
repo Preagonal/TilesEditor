@@ -30,6 +30,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     EntitySpatialGrid.cpp EntitySpatialGrid.h
     GraphicsView.cpp GraphicsView.h
     IEntitySpatialMap.h
+    IFileRequester.h
     ISpatialMapItem.h
     IWorld.h
     Image.cpp Image.h
@@ -37,6 +38,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     Level.cpp Level.h
     LevelChest.cpp LevelChest.h
     LevelCommands.cpp LevelCommands.h
+    LevelConverter.cpp LevelConverter.h LevelConverter.ui
     LevelEntityType.h
     LevelGraalBaddy.cpp LevelGraalBaddy.h
     LevelLink.cpp LevelLink.h
@@ -95,7 +97,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     rc/FileBrowserDialog.cpp rc/FileBrowserDialog.h rc/FileBrowserDialog.ui
     rc/RCConnectDialog.cpp rc/RCConnectDialog.h rc/RCConnectDialog.ui
     rc/RCConnection.cpp rc/RCConnection.h
-        rc/RCIODevice.cpp rc/RCIODevice.h
+    rc/RCIODevice.cpp rc/RCIODevice.h
     rc/Server.h
     rc/ServerListDialog.cpp rc/ServerListDialog.h rc/ServerListDialog.ui
 )
@@ -122,6 +124,7 @@ target_link_libraries(TilesEditor PRIVATE
 set(MainWindow_resource_files
     "icons/baddy.png"
     "icons/chest.png"
+    "icons/fugue/application-sidebar-collapse.png"
     "icons/fugue/arrow-circle-315.png"
     "icons/fugue/arrow-curve-180-left.png"
     "icons/fugue/arrow-curve.png"
@@ -147,6 +150,7 @@ set(MainWindow_resource_files
     "icons/fugue/eye-close.png"
     "icons/fugue/eye.png"
     "icons/fugue/folder-open-document.png"
+    "icons/fugue/folder-open.png"
     "icons/fugue/function.png"
     "icons/fugue/image-export.png"
     "icons/fugue/information-octagon.png"

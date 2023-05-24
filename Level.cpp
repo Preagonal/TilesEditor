@@ -98,7 +98,7 @@ namespace TilesEditor
     bool Level::loadFile()
     {
         auto stream = m_world->getResourceManager().getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
-        if (stream)
+        if (stream->open(QIODeviceBase::ReadOnly))
         {
             loadStream(stream);
             delete stream;
@@ -228,7 +228,7 @@ namespace TilesEditor
                             auto y = words[2].toDouble() * 16;
 
                             auto signIndex = words[4].toInt();
-                            
+
                             auto chest = new LevelChest(m_world, x + getX(), y + getY(), itemName, signIndex);
                             chest->setLevel(this);
 

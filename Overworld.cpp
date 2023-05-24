@@ -48,7 +48,7 @@ namespace TilesEditor
 	bool Overworld::loadFile()
 	{
 
-		QIODevice* file = resourceManager.getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
+		QIODevice* file = m_world->getResourceManager().getFileSystem()->openStream(m_fileName, QIODeviceBase::ReadOnly);
 
 		if (file->open(QIODevice::ReadOnly))
 		{

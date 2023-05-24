@@ -14,6 +14,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./rc/ServerListDialog.h \
     ./rc/FileBrowserDialog.h \
     ./rc/RCConnection.h \
+    ./rc/RCIODevice.h \
     ./rc/Server.h \
     ./LevelGraalBaddy.h \
     ./LevelChest.h \
@@ -91,6 +92,7 @@ SOURCES += ./AboutDialog.cpp \
     ./rc/ServerListDialog.cpp \
     ./rc/FileBrowserDialog.cpp \
     ./rc/RCConnection.cpp \
+    ./rc/RCIODevice.cpp \
     ./EditAnonymousNPC.cpp \
     ./EditBaddy.cpp \
     ./EditChestDialog.cpp \

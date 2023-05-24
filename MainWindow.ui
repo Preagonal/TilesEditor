@@ -220,7 +220,6 @@
     <iconset resource="MainWindow.qrc">
      <normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</normaloff>:/MainWindow/icons/fugue/application-sidebar-collapse.png</iconset>
    </property>
-   </property>
    <property name="text">
     <string>RC</string>
    </property>

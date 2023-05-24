@@ -84,6 +84,10 @@ namespace TilesEditor::RC {
 			bool canSend() override				{ return _fileQueue.canSend(); }
 
 			// Required by AbstractFileSystem
+			void requestFile(IFileRequester* requester, const QString& fileName) override {};
+
+			void removeListener(IFileRequester* requester) override {};
+
 			QStringList getFolders(const QString& parent) override {
 				QStringList list{};
 
@@ -118,7 +122,7 @@ namespace TilesEditor::RC {
 			};
 
 			//this is called when a file has finished being written to. also delete the stream object in this function
-			void endWrite(const QString& fileName, QIODevice* stream) override {};
+			void endWrite(IFileRequester* requester, const QString& fileName, QIODevice* stream) override {};
 
 			RCConnection(const RCConnection &obj)
 			= delete;
