@@ -28,6 +28,8 @@ namespace TilesEditor
     {
         QPixmap pixmap;
 
+		stream->open(QIODevice::ReadOnly);
+
         if (pixmap.loadFromData(stream->readAll()))
         {
             return new Image(assetName, pixmap);

@@ -95,7 +95,22 @@ namespace TilesEditor::RC {
 			};
 
 			bool fileExists(const QString& fileName) override {
-				return true;
+				std::string subString = fileName.toStdString();
+
+				size_t lastSlashPos = subString.find_last_of('/');
+
+				if (lastSlashPos != std::string::npos) {
+					// Extracting the substring up to the last '/'
+					subString = subString.substr(lastSlashPos + 1);
+				}
+				auto it = files.find(subString);
+				if (it != files.end()) {
+					return true;
+				} else {
+					requestFile(subString);
+					return false;
+				}
+
 			};
 
 			QIODevice* openStream(const QString& fileName, QIODeviceBase::OpenModeFlag mode) override {
@@ -164,13 +179,15 @@ namespace TilesEditor::RC {
 			void msgRC_FILEBROWSER_DIRLIST(CString& pPacket);
 			void msgRC_FILEBROWSER_MESSAGE(CString& pPacket);
 
-		map<string, CString> getFiles();
+			map<string, CString> getFiles();
 
-		void requestFile(string fileName);
+			void requestFile(const string& fileName, bool addToRequestedFiles = true);
 
-		void openFileBrowser();
+			void openFileBrowser();
 
-		std::vector<std::string> requestedFiles;
+			std::vector<std::string> requestedFiles;
+
+			void changeDirectory(string folderPath);
 	};
 }
 #endif //TILESEDITOR_RCCONNECTION_H

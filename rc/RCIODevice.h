@@ -25,7 +25,7 @@ namespace TilesEditor::RC {
 			void close() override;
 
 		private:
-			QString _fileName;
+			std::string _fileName;
 
 			CString d;
 	};

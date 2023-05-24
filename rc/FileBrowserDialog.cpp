@@ -32,7 +32,7 @@ namespace TilesEditor::RC {
 
 		auto* connection = RCConnection::getInstance();
 
-		connection->sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_DOWN << file.Name);
+		connection->requestFile(file.Name, false);
 	}
 
 	void FileBrowserDialog::doubleClicked(const QModelIndex &index) {
@@ -66,7 +66,7 @@ namespace TilesEditor::RC {
 
 		if (!folderPath.empty()) {
 			RCConnection* connection = RCConnection::getInstance();
-			connection->sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_CD << folderPath);
+			connection->changeDirectory(folderPath);
 		}
 	}
 
@@ -147,15 +147,17 @@ namespace TilesEditor::RC {
 		folderIter = 0;
 
 		std::vector<std::string> folderStrings;
-
+		RCConnection* connection = RCConnection::getInstance();
 		for (const auto& folder : _folders) {
 			std::string nameString = std::regex_replace(folder.Name, std::regex("\\*"), "");
 			folderStrings.push_back(nameString);
+
+			connection->changeDirectory(nameString);
 		}
 
 		// Sort the vector in ascending order
 		std::sort(folderStrings.begin(), folderStrings.end());
-
+		connection->changeDirectory(folderStrings[0]);
 		buildTree(folderStrings, rootItem);
 
 

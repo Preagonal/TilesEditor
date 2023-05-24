@@ -562,13 +562,39 @@ namespace TilesEditor::RC {
 		return files;
 	}
 
-	void RCConnection::requestFile(string fileName) {
-		sendPacket(CString() >> (char)PLI_WANTFILE << fileName);
-		requestedFiles.push_back(fileName);
+	void RCConnection::requestFile(const string& fileName, bool addToRequestedFiles) {
+
+		size_t lastSlashPos = fileName.find_last_of('/');
+		std::string subString = fileName;
+
+		if (lastSlashPos != std::string::npos) {
+			// Extracting the substring up to the last '/'
+			subString = fileName.substr(lastSlashPos + 1);
+		}
+
+		bool requested = false;
+
+		for (const std::string& requestedFile : requestedFiles) {
+			if (requestedFile == subString) {
+				requested = true;
+				break;
+			}
+		}
+
+		if (!requested) {
+			sendPacket(CString() >> (char) PLI_WANTFILE << subString);
+
+			if (addToRequestedFiles)
+				requestedFiles.push_back(subString);
+		}
 	}
 
 	void RCConnection::openFileBrowser() {
 		fileBrowser.open();
+	}
+
+	void RCConnection::changeDirectory(string folderPath) {
+		sendPacket(CString() >> (char)PLI_RC_FILEBROWSER_CD << folderPath);
 	}
 }
 #pragma clang diagnostic pop
