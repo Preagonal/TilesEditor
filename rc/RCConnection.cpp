@@ -34,6 +34,7 @@ namespace TilesEditor::RC {
 			TSLFunc[LI_SVRLIST] = &RCConnection::msgSVRLIST;
 		} else {
 			TSLFunc[PLO_DISCMESSAGE] = &RCConnection::msgDISCMESSAGE;
+			TSLFunc[PLO_FILESENDFAILED] = &RCConnection::msgFILESENDFAILED;
 			TSLFunc[PLO_RC_FILEBROWSER_DIRLIST] = &RCConnection::msgRC_FILEBROWSER_DIRLIST;
 			TSLFunc[PLO_RC_FILEBROWSER_DIR] = &RCConnection::msgRC_FILEBROWSER_DIR;
 			TSLFunc[PLO_RC_FILEBROWSER_MESSAGE] = &RCConnection::msgRC_FILEBROWSER_MESSAGE;
@@ -373,21 +374,35 @@ namespace TilesEditor::RC {
 		if (!receivingLargeFile) {
 			//files[currentFile].save(currentFile);
 
-			if (!rcMode) {
-				bool requested = false;
-
-				for (const std::string& requestedFile : requestedFiles) {
-					if (requestedFile == currentFile) {
-						requested = true;
-						break;
-					}
+			IFileRequester* requester = nullptr;
+			for (const auto& requestedFile : requestedFiles) {
+				if (requestedFile.first == currentFile) {
+					requester = requestedFile.second;
+					break;
 				}
+			}
 
-				if (!requested)
-					mw->openLevelFilename(currentFile.c_str(), this);
+			if (!requester)
+				mw->openLevelFilename(currentFile.c_str(), this);
+			else
+				requester->fileReady(currentFile.c_str());
+		}
+	}
+
+	void RCConnection::msgFILESENDFAILED(CString& pPacket)
+	{
+		std::string failedFile = pPacket.readString("").text();
+
+		IFileRequester* requester = nullptr;
+		for (const auto& requestedFile : requestedFiles) {
+			if (requestedFile.first == failedFile) {
+				requester = requestedFile.second;
+				break;
 			}
 		}
-		//QMessageBox::information(nullptr, "Serverlist Status", currentFileData.text(), QMessageBox::Ok);
+
+		if (requester)
+			requester->fileFailed(failedFile.c_str());
 	}
 
 	void RCConnection::msgLARGEFILESTART(CString& pPacket)
@@ -403,9 +418,19 @@ namespace TilesEditor::RC {
 		pPacket.readString("");
 		receivingLargeFile = false;
 
-		if (!receivingLargeFile) {
-			//files[currentFile].save(currentFile);
+		IFileRequester* requester = nullptr;
+		for (const auto& requestedFile : requestedFiles) {
+			if (requestedFile.first == currentFile) {
+				requester = requestedFile.second;
+				break;
+			}
 		}
+
+		if (!requester)
+			mw->openLevelFilename(currentFile.c_str(), this);
+		else
+			requester->fileReady(currentFile.c_str());
+
 		currentFileData.clear();
 	}
 
@@ -562,7 +587,7 @@ namespace TilesEditor::RC {
 		return files;
 	}
 
-	void RCConnection::requestFile(const string& fileName, bool addToRequestedFiles) {
+	void RCConnection::requestFile(const string& fileName, bool addToRequestedFiles, IFileRequester* requester) {
 
 		size_t lastSlashPos = fileName.find_last_of('/');
 		std::string subString = fileName;
@@ -572,21 +597,10 @@ namespace TilesEditor::RC {
 			subString = fileName.substr(lastSlashPos + 1);
 		}
 
-		bool requested = false;
+		sendPacket(CString() >> (char) PLI_WANTFILE << subString);
 
-		for (const std::string& requestedFile : requestedFiles) {
-			if (requestedFile == subString) {
-				requested = true;
-				break;
-			}
-		}
-
-		if (!requested) {
-			sendPacket(CString() >> (char) PLI_WANTFILE << subString);
-
-			if (addToRequestedFiles)
-				requestedFiles.push_back(subString);
-		}
+		if (addToRequestedFiles)
+			requestedFiles.emplace(subString, requester);
 	}
 
 	void RCConnection::openFileBrowser() {

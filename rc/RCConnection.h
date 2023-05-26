@@ -84,9 +84,26 @@ namespace TilesEditor::RC {
 			bool canSend() override				{ return _fileQueue.canSend(); }
 
 			// Required by AbstractFileSystem
-			void requestFile(IFileRequester* requester, const QString& fileName) override {};
+			void requestFile(IFileRequester* requester, const QString& fileName) override {
+				std::string subString = fileName.toStdString();
 
-			void removeListener(IFileRequester* requester) override {};
+				size_t lastSlashPos = subString.find_last_of('/');
+
+				if (lastSlashPos != std::string::npos) {
+					// Extracting the substring up to the last '/'
+					subString = subString.substr(lastSlashPos + 1);
+				}
+				requestFile(subString, true, requester);
+			};
+
+			void removeListener(IFileRequester* requester) override {
+				for (const auto& requestedFile : requestedFiles) {
+					if (requestedFile.second == requester) {
+						requestedFiles.erase(requestedFile.first);
+						break;
+					}
+				}
+			};
 
 			QStringList getFolders(const QString& parent) override {
 				QStringList list{};
@@ -111,7 +128,6 @@ namespace TilesEditor::RC {
 				if (it != files.end()) {
 					return true;
 				} else {
-					requestFile(subString);
 					return false;
 				}
 
@@ -164,8 +180,11 @@ namespace TilesEditor::RC {
 			void connect();
 
 			void msgNULL(CString& pPacket);
+
+			// File Packets
 			void msgRAWDATA(CString& pPacket);
 			void msgFILE(CString& pPacket);
+			void msgFILESENDFAILED(CString& pPacket);
 			void msgLARGEFILESTART(CString& pPacket);
 			void msgLARGEFILEEND(CString& pPacket);
 
@@ -185,11 +204,11 @@ namespace TilesEditor::RC {
 
 			map<string, CString> getFiles();
 
-			void requestFile(const string& fileName, bool addToRequestedFiles = true);
+			void requestFile(const string& fileName, bool addToRequestedFiles = true, IFileRequester* requester = nullptr);
 
 			void openFileBrowser();
 
-			std::vector<std::string> requestedFiles;
+			std::map<std::string,IFileRequester*> requestedFiles;
 
 			void changeDirectory(string folderPath);
 	};
