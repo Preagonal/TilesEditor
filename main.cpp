@@ -4,6 +4,7 @@
 #include "RCConnection.h"
 #include "RCConnectDialog.h"
 #include <QtWidgets/QApplication>
+#include <QImageReader>
 
 bool rcMode = false;
 
@@ -95,6 +96,7 @@ int main(int argc, char *argv[])
 
         app.setPalette(darkPalette);
     }
+    QImageReader::setAllocationLimit(1024 * 4);
 
 	auto timer = new QTimer();
 	timer->start(5);

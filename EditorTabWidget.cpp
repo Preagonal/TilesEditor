@@ -145,6 +145,11 @@ namespace TilesEditor
 		connect(ui.deleteButton, &QToolButton::clicked, this, &EditorTabWidget::deleteClicked);
 		connect(ui.screenshotButton, &QToolButton::clicked, this, &EditorTabWidget::screenshotClicked);
 
+
+		connect(ui.hcountSpinBox, &QSpinBox::valueChanged, this, &EditorTabWidget::gridValueChanged);
+		connect(ui.vcountSpinBox, &QSpinBox::valueChanged, this, &EditorTabWidget::gridValueChanged);
+		connect(ui.gridButton, &QToolButton::released, m_graphicsView, &GraphicsView::redraw);
+
 		//connect(ui.toolButton, &QToolButton::clicked, this, &EditorTabWidget::test);
 		auto selectMenu = new QMenu();
 		m_selectNPCs = selectMenu->addAction("Npcs");
@@ -160,6 +165,26 @@ namespace TilesEditor
 		m_selectSigns->setChecked(true);
 
 		ui.selectionButton->setMenu(selectMenu);
+
+		auto visibleObjectsMenu = new QMenu();
+		m_showNPCs = visibleObjectsMenu->addAction("Npcs");
+		m_showNPCs->setCheckable(true);
+		m_showNPCs->setChecked(true);
+		connect(m_showNPCs, &QAction::triggered, m_graphicsView, &GraphicsView::redraw);
+
+		m_showLinks = visibleObjectsMenu->addAction("Links");
+		m_showLinks->setCheckable(true);
+		m_showLinks->setChecked(true);
+		connect(m_showLinks, &QAction::triggered, m_graphicsView, &GraphicsView::redraw);
+
+		m_showSigns = visibleObjectsMenu->addAction("Signs");
+		m_showSigns->setCheckable(true);
+		m_showSigns->setChecked(true);
+		connect(m_showSigns, &QAction::triggered, m_graphicsView, &GraphicsView::redraw);
+
+		ui.visibleObjectsButton->setMenu(visibleObjectsMenu);
+
+
 
 		auto functionsMenu = new QMenu();
 		auto deleteEdgeLinks = functionsMenu->addAction("Delete Edge Links");
@@ -209,16 +234,21 @@ namespace TilesEditor
 
 	}
 
-	void EditorTabWidget::renderScene(QPainter * painter, const QRectF & rect)
+	void EditorTabWidget::renderScene(QPainter * painter, const QRectF & _rect)
 	{
+		QRectF rect(std::floor(_rect.x()), std::floor(_rect.y()), _rect.width(), _rect.height());
+
+
 		Rectangle viewRect(rect.x(), rect.y(), rect.width(), rect.height());
 	
-		painter->fillRect(rect, QColorConstants::Black);
-
 		//forcing the view x/y offset as a whole number prevents tile alignment errors
 		auto transform = painter->transform();
 		QTransform newTransform(transform.m11(), transform.m12(), transform.m21(), transform.m22(), std::floor(transform.dx()), std::floor(transform.dy()));
 		painter->setTransform(newTransform);
+
+		painter->fillRect(rect, QColorConstants::Black);
+
+
 
 
 		auto mousePos = m_graphicsView->mapToScene(m_graphicsView->mapFromGlobal(QCursor::pos()));
@@ -358,6 +388,7 @@ namespace TilesEditor
 			}
 		}
 
+
 		//Draw npcs
 		QSet<AbstractLevelEntity*> drawObjects;
 		if (m_overworld)
@@ -373,6 +404,15 @@ namespace TilesEditor
 
 		for (auto entity : sortedObjects)
 		{
+			if (entity->getEntityType() == LevelEntityType::ENTITY_NPC && !m_showNPCs->isChecked())
+				continue;
+
+			if (entity->getEntityType() == LevelEntityType::ENTITY_LINK && !m_showLinks->isChecked())
+				continue;
+
+			if (entity->getEntityType() == LevelEntityType::ENTITY_SIGN && !m_showSigns->isChecked())
+				continue;
+
 			entity->loadResources();
 			entity->draw(painter, viewRect);
 		}
@@ -418,8 +458,6 @@ namespace TilesEditor
 			painter->setCompositionMode(QPainter::CompositionMode_Difference);
 			painter->setPen(QColor(255, 255, 255));
 
-
-			//Draw tiles (and make sure level is loaded)
 			for (auto level : drawLevels)
 			{
 				int fontWidth = fm.horizontalAdvance(level->getName());
@@ -429,6 +467,41 @@ namespace TilesEditor
 
 			}
 			painter->setCompositionMode(compositionMode);
+		}
+
+		//Draw grid
+		if (ui.gridButton->isChecked())
+		{
+			if (ui.hcountSpinBox->value() > 0 && ui.vcountSpinBox->value() > 0)
+			{
+				if (m_gridImage.isNull())
+					generateGridImage(ui.hcountSpinBox->value() * 16, ui.vcountSpinBox->value() * 16);
+
+				auto compositionMode = painter->compositionMode();
+				painter->setCompositionMode(QPainter::CompositionMode_Difference);
+
+				auto opacity = painter->opacity();
+				painter->setOpacity(0.66f);
+				int gridOffsetX = ((int)rect.x()) % (ui.hcountSpinBox->value() * 16);
+				int gridOffsetY = ((int)rect.y()) % (ui.vcountSpinBox->value() * 16);
+
+
+				for (int y = 0; y < rect.height() + m_gridImage.height(); y += m_gridImage.height())
+				{
+
+
+					for (int x = 0; x < rect.width() + m_gridImage.width(); x += m_gridImage.width())
+					{
+						float left = x - gridOffsetX + rect.x();
+						float top = y - gridOffsetY + rect.y();
+
+						painter->drawPixmap(left, top, m_gridImage);
+					}
+				}
+				painter->setOpacity(opacity);
+				painter->setCompositionMode(compositionMode);
+			}
+
 		}
 	}
 
@@ -688,6 +761,42 @@ namespace TilesEditor
 		return false;
 
 	}
+
+	void EditorTabWidget::generateGridImage(int width, int height)
+	{
+		int hcount = width <= 256 ? qFloor(256.0f / width) : 1;
+		int vcount = height <= 256 ? qFloor(256.0f / height) : 1;
+
+		if (hcount > 0 && vcount > 0)
+		{
+			int textureWidth = hcount * width;
+			int textureHeight = vcount * height;
+
+			QImage image(textureWidth, textureHeight, QImage::Format_ARGB32);
+			image.fill(QColor(255, 255, 255, 0));
+			QPen pen;
+			pen.setWidth(1);
+			pen.setColor(Qt::white);
+
+			QPainter painter(&image);
+			painter.setPen(pen);
+
+			for (int y = 0; y < textureHeight; y += height)
+			{
+				painter.drawLine(0, y, textureWidth, y);
+			}
+
+			for (int x = 0; x < textureWidth; x += width)
+			{
+				painter.drawLine(x, 0, x, textureHeight);
+			}
+			painter.end();
+
+			m_gridImage = QPixmap::fromImage(image);
+
+		}
+	}
+
 	void EditorTabWidget::doTileSelection()
 	{
 		if (m_selector.visible())
@@ -1030,6 +1139,90 @@ namespace TilesEditor
 			addUndoCommand(undoCommand);
 	}
 
+
+	void EditorTabWidget::doPaste(bool centerScreen)
+	{
+
+		QClipboard* clipboard = QApplication::clipboard();
+
+		auto text = clipboard->text();
+
+		QByteArray ba = text.toLocal8Bit();
+
+		auto json = cJSON_Parse(ba.data());
+
+		if (json != nullptr)
+		{
+			auto viewRect = getViewRect();
+			auto type = jsonGetChildString(json, "type");
+
+			auto x = jsonGetChildDouble(json, "x");
+			auto y = jsonGetChildDouble(json, "y");
+			if (type == "tileSelection")
+			{
+				auto hcount = jsonGetChildInt(json, "hcount");
+				auto vcount = jsonGetChildInt(json, "vcount");
+
+
+				auto pasteX = centerScreen ? ((viewRect.getCenterX() - (hcount * 16) / 2) / 16.0) * 16.0 : x;
+				auto pasteY = centerScreen ? std::floor((viewRect.getCenterY() - (vcount * 16) / 2) / 16.0) * 16.0 : y;
+
+				auto tileSelection = new TileSelection(pasteX, pasteY, hcount, vcount);
+
+				auto tileArray = cJSON_GetObjectItem(json, "tiles");
+
+				if (tileArray && tileArray->type == cJSON_Array)
+				{
+					static const QString base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+					for (int y = 0; y < cJSON_GetArraySize(tileArray); ++y)
+					{
+						auto arrayItem = cJSON_GetArrayItem(tileArray, y);
+						if (arrayItem->type == cJSON_String)
+						{
+							QString line(arrayItem->valuestring);
+
+							auto parts = line.split(' ', Qt::SkipEmptyParts);
+							for (auto x = 0U; x < parts.size(); ++x)
+							{
+								int tile = 0;
+								auto& part = parts[x];
+								int bitcount = 0;
+
+
+								for (auto i = part.length() - 1; i >= 0; --i) {
+									auto value = base64.indexOf(part[i]);
+
+									tile |= value << bitcount;
+									bitcount += 6;
+
+								}
+								tileSelection->setTile(x, y, tile);
+							}
+						}
+					}
+				}
+
+				if (m_tilesetImage)
+					tileSelection->setTilesetImage(m_tilesetImage);
+				setSelection(tileSelection);
+
+				m_graphicsView->redraw();
+
+			}
+			else if (type == "objectSelection")
+			{
+				auto selection = new ObjectSelection(centerScreen ? viewRect.getCenterX() : x, centerScreen ? viewRect.getCenterY() : y);
+				selection->deserializeJSON(json, this);
+
+
+				setSelection(selection);
+
+				m_graphicsView->redraw();
+			}
+
+			cJSON_Delete(json);
+		}
+	}
 
 	void EditorTabWidget::newLevel(int hcount, int vcount)
 	{
@@ -1655,8 +1848,15 @@ namespace TilesEditor
 
 			if (m_selector.visible())
 			{
+				auto selection = m_selector.getSelection();
+				
+				Rectangle rect(pos.x(), pos.y(), 1, 1);
+				if (rect.intersects(selection)) {
+					doTileSelection();
+				}
 				m_selector.setVisible(false);
 				selectorGone();
+
 				
 			}
 
@@ -1665,6 +1865,19 @@ namespace TilesEditor
 				m_graphicsView->redraw();
 				ui.floodFillButton->setChecked(false);
 				return;
+			}
+
+			//Copy-paste via right click
+			if (m_selection && m_selection->pointInSelection(pos.x(), pos.y()))
+			{
+				m_selection->clipboardCopy();
+				doPaste(false);
+
+				if (m_selection) {
+					m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier));
+				}
+				return;
+
 			}
 			setSelection(nullptr);
 
@@ -1823,7 +2036,7 @@ namespace TilesEditor
 		}
 
 		//If holding left button
-		if (event->buttons().testFlag(Qt::MouseButton::LeftButton))
+		if (event->buttons().testFlag(Qt::MouseButton::LeftButton) || event->buttons().testFlag(Qt::MouseButton::RightButton))
 		{
 
 			if (m_selection != nullptr)
@@ -2451,80 +2664,8 @@ namespace TilesEditor
 
 	void EditorTabWidget::pastePressed()
 	{
-		QClipboard* clipboard = QApplication::clipboard();
+		doPaste(true);
 
-		auto text = clipboard->text();
-
-		QByteArray ba = text.toLocal8Bit();
-
-		auto json = cJSON_Parse(ba.data());
-
-		if (json != nullptr)
-		{
-			auto viewRect = getViewRect();
-			auto type = jsonGetChildString(json, "type");
-			if (type == "tileSelection")
-			{
-				auto hcount = jsonGetChildInt(json, "hcount");
-				auto vcount = jsonGetChildInt(json, "vcount");
-
-
-
-				auto tileSelection = new TileSelection(std::floor((viewRect.getCenterX() - (hcount * 16) / 2) / 16.0) * 16.0, std::floor((viewRect.getCenterY() - (vcount * 16) / 2) / 16.0) * 16.0, hcount, vcount);
-
-				auto tileArray = cJSON_GetObjectItem(json, "tiles");
-
-				if (tileArray && tileArray->type == cJSON_Array)
-				{
-					static const QString base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-					for (int y = 0; y < cJSON_GetArraySize(tileArray); ++y)
-					{
-						auto arrayItem = cJSON_GetArrayItem(tileArray, y);
-						if (arrayItem->type == cJSON_String)
-						{
-							QString line(arrayItem->valuestring);
-
-							auto parts = line.split(' ', Qt::SkipEmptyParts);
-							for (auto x = 0U; x < parts.size(); ++x)
-							{
-								int tile = 0;
-								auto& part = parts[x];
-								int bitcount = 0;
-
-
-								for (auto i = part.length() - 1; i >= 0; --i) {
-									auto value = base64.indexOf(part[i]);
-
-									tile |= value << bitcount;
-									bitcount += 6;
-
-								}
-								tileSelection->setTile(x, y, tile);
-							}
-						}
-					}
-				}
-
-				if(m_tilesetImage)
-					tileSelection->setTilesetImage(m_tilesetImage);
-				setSelection(tileSelection);
-
-				m_graphicsView->redraw();
-
-			}
-			else if (type == "objectSelection")
-			{
-				auto selection = new ObjectSelection(viewRect.getCenterX(), viewRect.getCenterY());
-				selection->deserializeJSON(json, this);
-
-
-				setSelection(selection);
-
-				m_graphicsView->redraw();
-			}
-
-			cJSON_Delete(json);
-		}
 	}
 
 	void EditorTabWidget::deleteClicked(bool checked)
@@ -2806,7 +2947,7 @@ namespace TilesEditor
 											}
 										}
 									}
-
+					
 									group->addTileObject(tileObject);
 
 
@@ -2906,7 +3047,7 @@ namespace TilesEditor
 	{
 		auto selection = new ObjectSelection(0, 0);
 
-		auto chest = new LevelChest(nullptr, 0, 0, "greenrupee", -1);
+		auto chest = new LevelChest(this, 0, 0, "greenrupee", -1);
 		selection->addObject(chest);
 		selection->setAlternateSelectionMethod(true);
 		selection->setSelectMode(ObjectSelection::SelectMode::MODE_INSERT);
@@ -2918,7 +3059,7 @@ namespace TilesEditor
 	{
 		auto selection = new ObjectSelection(0, 0);
 
-		auto chest = new LevelGraalBaddy(nullptr, 0.0, 0.0, 0);
+		auto chest = new LevelGraalBaddy(this, 0.0, 0.0, 0);
 		selection->addObject(chest);
 		selection->setAlternateSelectionMethod(true);
 		selection->setSelectMode(ObjectSelection::SelectMode::MODE_INSERT);
@@ -3098,12 +3239,11 @@ namespace TilesEditor
 		}
 	}
 
-	void EditorTabWidget::test(bool checked)
+	void EditorTabWidget::gridValueChanged(int)
 	{
-		auto transform = m_graphicsView->transform();
-		QTransform newTransform(transform.m11(), transform.m12(), transform.m21(), transform.m22(), (transform.dx()) + 0.1, transform.dy());
-		m_graphicsView->setTransform(newTransform);
-
+		QPixmap a;
+		m_gridImage.swap(a);
+		m_graphicsView->redraw();
 	}
 
 	void EditorTabWidget::selectorGone()

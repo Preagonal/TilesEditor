@@ -112,6 +112,7 @@
     <ClCompile Include="EditorTabWidget.cpp" />
     <ClCompile Include="EditSignsDialog.cpp" />
     <ClCompile Include="EditTilesetDialog.cpp" />
+    <ClCompile Include="FixMapNamesDialog.cpp" />
     <ClCompile Include="GraphicsView.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageDimensions.cpp" />
@@ -164,6 +165,7 @@
     <QtUic Include="EditorTabWidget.ui" />
     <QtUic Include="EditSignsDialog.ui" />
     <QtUic Include="EditTilesetDialog.ui" />
+    <QtUic Include="FixMapNamesDialog.ui" />
     <QtUic Include="LevelConverter.ui" />
     <QtUic Include="ListLinksDialog.ui" />
     <QtUic Include="MainWindow.ui" />
@@ -197,10 +199,12 @@
     <QtMoc Include="EditTilesetDialog.h" />
     <QtMoc Include="EditChestDialog.h" />
     <QtMoc Include="EditBaddy.h" />
+    <QtMoc Include="FixMapNamesDialog.h" />
     <ClInclude Include="IFileRequester.h" />
     <ClInclude Include="LevelChest.h" />
     <ClInclude Include="LevelCommands.h" />
     <QtMoc Include="LevelConverter.h" />
+    <ClInclude Include="LevelFactory.h" />
     <ClInclude Include="LevelGraalBaddy.h" />
     <ClInclude Include="LevelLink.h" />
     <ClInclude Include="LevelNPC.h" />

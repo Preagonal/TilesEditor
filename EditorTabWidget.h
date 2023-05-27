@@ -101,7 +101,8 @@ namespace TilesEditor
 		void trimScriptEndingsClicked(bool checked);
 		void trimSignEndingsClicked(bool checked);
 
-		void test(bool checked);
+		void gridValueChanged(int);
+	
 		//When the selector goes (he we will disable the button to create link/sign)
 		void selectorGone();
 
@@ -136,6 +137,10 @@ namespace TilesEditor
 		QAction* m_selectLinks;
 		QAction* m_selectSigns;
 
+		QAction* m_showNPCs;
+		QAction* m_showLinks;
+		QAction* m_showSigns;
+
 		ResourceManager m_resourceManager;
 		GraphicsView* m_graphicsView;
 		Level* m_level;
@@ -146,6 +151,8 @@ namespace TilesEditor
 		Overworld* m_overworld;
 		QMap<int, bool>	m_visibleLayers;
 		QPointF m_lastMousePos;
+
+		QPixmap m_gridImage;
 
 		int m_selectedTilesLayer;
 		bool m_selectedLayerVisible;
@@ -158,6 +165,8 @@ namespace TilesEditor
 
 		Tilemap	m_fillPattern;
 		QUndoStack m_undoStack;
+
+		void generateGridImage(int width, int height);
 
 		void doTileSelection();
 		bool doObjectSelection(int x, int y, bool allowAppend);
@@ -236,6 +245,7 @@ namespace TilesEditor
 		int getHeight() const override;
 		Image* getTilesetImage() override { return m_tilesetImage; }
 
+		void doPaste(bool centerScreen);
 		void newLevel(int hcount, int vcount);
 		void loadOverworld(const QString& name, const QString& fileName);
 		void loadLevel(const QString& name, const QString& fileName);
