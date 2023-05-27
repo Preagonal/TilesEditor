@@ -163,7 +163,7 @@ namespace TilesEditor
 
     void MainWindow::openFile(bool checked)
     {
-        auto fileName = QFileDialog::getOpenFileName(nullptr, "Select level", QString(), "All supported files (*.nw *.graal *.zelda *.gmap *.lvl *.world *.txt)");
+        auto fileName = QFileDialog::getOpenFileName(this, "Select level", QString(), "All supported files (*.nw *.graal *.zelda *.gmap *.lvl *.world *.txt)");
 
         if (!fileName.isEmpty())
         {

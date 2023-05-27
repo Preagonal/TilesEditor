@@ -78,6 +78,8 @@ if (MINGW)
 
     message(STATUS "${TARGET_NAME} Mingw64 setup")
 
+    #file(WRITE "./objdump_unix2dos.sh" "${CMAKE_OBJDUMP} $@ | unix2dos")
+    #file(CHMOD "./objdump_unix2dos.sh" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
 
     install(CODE "set(MY_EXE \"${PROJECT_BINARY_DIR}/${TARGET_NAME}.exe\")")
 
