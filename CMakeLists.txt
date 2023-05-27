@@ -28,6 +28,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     EditTilesetDialog.cpp EditTilesetDialog.h EditTilesetDialog.ui
     EditorTabWidget.cpp EditorTabWidget.h EditorTabWidget.ui
     EntitySpatialGrid.cpp EntitySpatialGrid.h
+    FixMapNamesDialog.cpp FixMapNamesDialog.h FixMapNamesDialog.ui
     GraphicsView.cpp GraphicsView.h
     IEntitySpatialMap.h
     IFileRequester.h
@@ -40,6 +41,7 @@ qt_add_executable(TilesEditor WIN32 MACOSX_BUNDLE
     LevelCommands.cpp LevelCommands.h
     LevelConverter.cpp LevelConverter.h LevelConverter.ui
     LevelEntityType.h
+    LevelFactory.h
     LevelGraalBaddy.cpp LevelGraalBaddy.h
     LevelLink.cpp LevelLink.h
     LevelNPC.cpp LevelNPC.h
@@ -147,6 +149,7 @@ set(MainWindow_resource_files
     "icons/fugue/document-import.png"
     "icons/fugue/document-medium.png"
     "icons/fugue/document.png"
+    "icons/fugue/eye--pencil.png"
     "icons/fugue/eye-close.png"
     "icons/fugue/eye.png"
     "icons/fugue/folder-open-document.png"
@@ -164,6 +167,7 @@ set(MainWindow_resource_files
     "icons/fugue/script--pencil.png"
     "icons/fugue/script--plus.png"
     "icons/fugue/ui-progress-bar.png"
+    "icons/grid.png"
     "icons/npc.png"
     "icons/opps.png"
     "icons/sign.png"

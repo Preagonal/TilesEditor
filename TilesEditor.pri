@@ -23,6 +23,8 @@ HEADERS += ./AbstractFileSystem.h \
     ./LevelLink.h \
     ./LevelNPC.h \
     ./LevelSign.h \
+    ./LevelFactory.h \
+    ./FixMapNamesDialog.h \
     ./ObjectListModel.h \
     ./ObjectSelection.h \
     ./SelectionType.h \
@@ -113,6 +115,7 @@ SOURCES += ./AboutDialog.cpp \
     ./LevelLink.cpp \
     ./LevelNPC.cpp \
     ./LevelSign.cpp \
+    ./FixMapNamesDialog.cpp \
     ./ListLinksDialog.cpp \
     ./MainFileSystem.cpp \
     ./NewOverworldDialog.cpp \
@@ -157,6 +160,7 @@ FORMS += ./AboutDialog.ui \
     ./EditLinkDialog.ui \
     ./EditorTabWidget.ui \
     ./EditSignsDialog.ui \
+    ./FixMapNamesDialog.ui \
     ./EditTilesetDialog.ui \
     ./LevelConverter.ui \
     ./ListLinksDialog.ui \
