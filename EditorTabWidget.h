@@ -47,6 +47,8 @@ namespace TilesEditor
 		void tilesetMouseRelease(QMouseEvent* event);
 		void tilesetMouseMove(QMouseEvent* event);
 		void tilesetEditClicked(bool checked);
+		void tilesetMouseWheel(QWheelEvent* event);
+
 
 		void tileObjectsMousePress(QMouseEvent* event);
 
@@ -192,6 +194,8 @@ namespace TilesEditor
 		Tilemap* getTilesetSelection();
 		Tilemap* getSelectionTiles();
 
+		double getSnapX() const;
+		double getSnapY() const;
 
 	public:
 
@@ -229,6 +233,7 @@ namespace TilesEditor
 		bool tryGetTileAt(double x, double y, int* outTile) override;
 
 		void updateMovedEntity(AbstractLevelEntity* entity) override;
+		void updateEntityRect(AbstractLevelEntity* entity) override;
 		QList<Level*> getModifiedLevels() override;
 
 
@@ -236,8 +241,7 @@ namespace TilesEditor
 		void putTiles(double x, double y, int layer, Tilemap* input, bool ignoreInvisible) override;
 		void deleteTiles(double x, double y, int layer, int hcount, int vcount, int replacementTile) override;
 
-		int floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<QPair<unsigned short, unsigned short> >* outputNodes = nullptr) override;
-		void floodFillPattern2(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes = nullptr) override;
+		void floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes = nullptr) override;
 
 		int getUnitWidth() const override;
 		int getUnitHeight() const override;
@@ -246,7 +250,7 @@ namespace TilesEditor
 		Image* getTilesetImage() override { return m_tilesetImage; }
 
 		void doPaste(bool centerScreen);
-		void newLevel(int hcount, int vcount);
+		void newLevel(const QString& format, int hcount, int vcount);
 		void loadOverworld(const QString& name, const QString& fileName);
 		void loadLevel(const QString& name, const QString& fileName);
 

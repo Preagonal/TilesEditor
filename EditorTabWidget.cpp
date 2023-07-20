@@ -23,6 +23,7 @@
 #include "ScreenshotDialog.h"
 #include "LevelChest.h"
 #include "LevelGraalBaddy.h"
+#include "FileFormatManager.h"
 
 namespace TilesEditor
 {
@@ -89,6 +90,7 @@ namespace TilesEditor
 		connect(ui_tilesetsClass.graphicsView, &GraphicsView::mousePress, this, &EditorTabWidget::tilesetMousePress);
 		connect(ui_tilesetsClass.graphicsView, &GraphicsView::mouseRelease, this, &EditorTabWidget::tilesetMouseRelease);
 		connect(ui_tilesetsClass.graphicsView, &GraphicsView::mouseMove, this, &EditorTabWidget::tilesetMouseMove);
+		connect(ui_tilesetsClass.graphicsView, &GraphicsView::mouseWheelEvent, this, &EditorTabWidget::tilesetMouseWheel);
 		connect(ui_tilesetsClass.tilesetsCombo, &QComboBox::currentIndexChanged, this, &EditorTabWidget::tilesetsIndexChanged);
 
 
@@ -145,7 +147,7 @@ namespace TilesEditor
 		connect(ui.deleteButton, &QToolButton::clicked, this, &EditorTabWidget::deleteClicked);
 		connect(ui.screenshotButton, &QToolButton::clicked, this, &EditorTabWidget::screenshotClicked);
 
-
+		connect(ui.fadeLayersButton, &QToolButton::clicked, m_graphicsView, &GraphicsView::redraw);
 		connect(ui.hcountSpinBox, &QSpinBox::valueChanged, this, &EditorTabWidget::gridValueChanged);
 		connect(ui.vcountSpinBox, &QSpinBox::valueChanged, this, &EditorTabWidget::gridValueChanged);
 		connect(ui.gridButton, &QToolButton::released, m_graphicsView, &GraphicsView::redraw);
@@ -236,7 +238,7 @@ namespace TilesEditor
 
 	void EditorTabWidget::renderScene(QPainter * painter, const QRectF & _rect)
 	{
-		QRectF rect(std::floor(_rect.x()), std::floor(_rect.y()), _rect.width(), _rect.height());
+		QRectF rect(std::floor(_rect.x()), std::floor(_rect.y()), _rect.width() + 2, _rect.height() + 2);
 
 
 		Rectangle viewRect(rect.x(), rect.y(), rect.width(), rect.height());
@@ -267,7 +269,7 @@ namespace TilesEditor
 				{
 					if (m_visibleLayers.find(tilemap->getLayerIndex()) == m_visibleLayers.end() || m_visibleLayers[tilemap->getLayerIndex()])
 					{
-						auto fade = m_selectedTilesLayer != tilemap->getLayerIndex();
+						auto fade = m_selectedTilesLayer != tilemap->getLayerIndex() && ui.fadeLayersButton->isChecked();
 						if (fade)
 						{
 							painter->setOpacity(0.33);
@@ -480,25 +482,18 @@ namespace TilesEditor
 				auto compositionMode = painter->compositionMode();
 				painter->setCompositionMode(QPainter::CompositionMode_Difference);
 
-				auto opacity = painter->opacity();
-				painter->setOpacity(0.66f);
-				int gridOffsetX = ((int)rect.x()) % (ui.hcountSpinBox->value() * 16);
-				int gridOffsetY = ((int)rect.y()) % (ui.vcountSpinBox->value() * 16);
+				
+				auto right = std::ceil(viewRect.getRight() / m_gridImage.width()) * m_gridImage.width();
+				auto bottom = std::ceil(viewRect.getBottom() / m_gridImage.height()) * m_gridImage.height();
 
-
-				for (int y = 0; y < rect.height() + m_gridImage.height(); y += m_gridImage.height())
+				for (auto left = std::floor(viewRect.getX() / m_gridImage.width()) * m_gridImage.width(); left < right; left += m_gridImage.width())
 				{
-
-
-					for (int x = 0; x < rect.width() + m_gridImage.width(); x += m_gridImage.width())
+					for (auto top = std::floor(viewRect.getY() / m_gridImage.height()) * m_gridImage.height(); top < bottom; top += m_gridImage.height())
 					{
-						float left = x - gridOffsetX + rect.x();
-						float top = y - gridOffsetY + rect.y();
-
 						painter->drawPixmap(left, top, m_gridImage);
 					}
 				}
-				painter->setOpacity(opacity);
+
 				painter->setCompositionMode(compositionMode);
 			}
 
@@ -600,6 +595,7 @@ namespace TilesEditor
 
 		auto imageName = m_tileset.getImageName();
 
+
 		if (m_tilesetImage != nullptr)
 		{
 			if (m_tilesetImage->getName() == imageName)
@@ -628,10 +624,12 @@ namespace TilesEditor
 		if (m_overworld)
 		{
 			m_overworld->setTilesetName(tileset->text());
+			m_overworld->setTilesetImageName(tileset->getImageName());
 			setModified(nullptr);
 		}
 		else if (m_level) {
 			m_level->setTilesetName(tileset->text());
+			m_level->setTilesetImageName(tileset->getImageName());
 			setModified(m_level);
 		}
 	}
@@ -753,6 +751,19 @@ namespace TilesEditor
 		return nullptr;
 	}
 
+	double EditorTabWidget::getSnapX() const
+	{
+		if (ui.snapButton->isChecked())
+			return ui.hcountSpinBox->value() * 16;
+		return 1.0;
+	}
+
+	double EditorTabWidget::getSnapY() const
+	{
+		if (ui.snapButton->isChecked())
+			return ui.vcountSpinBox->value() * 16;
+		return 1.0;
+	}
 
 	bool EditorTabWidget::selectingLevel()
 	{
@@ -773,10 +784,12 @@ namespace TilesEditor
 			int textureHeight = vcount * height;
 
 			QImage image(textureWidth, textureHeight, QImage::Format_ARGB32);
-			image.fill(QColor(255, 255, 255, 0));
+			image.fill(QColor(0, 0, 0, 0));
 			QPen pen;
 			pen.setWidth(1);
-			pen.setColor(Qt::white);
+			pen.setStyle(Qt::PenStyle::DotLine);
+			
+			pen.setColor(QColor(255, 255, 255, 210));
 
 			QPainter painter(&image);
 			painter.setPen(pen);
@@ -862,7 +875,9 @@ namespace TilesEditor
 			auto selection = append ? static_cast<ObjectSelection*>(m_selection) : new ObjectSelection(x, y);
 
 			//setModified(entity->getLevel());
-			entity->getLevel()->removeEntityFromSpatialMap(entity);
+
+			if(entity->getLevel())
+				entity->getLevel()->removeEntityFromSpatialMap(entity);
 
 			selection->addObject(entity);
 			entity->setStartRect(*entity);
@@ -882,10 +897,14 @@ namespace TilesEditor
 		auto hadSelection = m_selection != nullptr;
 		if (m_selection != nullptr)
 		{
+			auto oldRect = m_selection->getDrawRect();
 			if(!m_selection->getAlternateSelectionMethod())
 				m_selection->reinsertIntoWorld(this, m_selectedTilesLayer);
 			m_selection->release(m_resourceManager);
 			delete m_selection;
+			m_selection = nullptr;
+
+			m_graphicsView->scene()->update(oldRect.getX() - 2, oldRect.getY() - 2, oldRect.getWidth() + 4, oldRect.getHeight() + 4);
 		}
 
 
@@ -900,7 +919,10 @@ namespace TilesEditor
 
 			if (m_selector.visible())
 			{
+				auto oldRect = m_selector.getSelection();
 				m_selector.setVisible(false);
+				m_graphicsView->scene()->update(oldRect.getX() - 2, oldRect.getY() - 2, oldRect.getWidth() + 4, oldRect.getHeight() + 4);
+
 				selectorGone();
 			}
 
@@ -1164,7 +1186,7 @@ namespace TilesEditor
 				auto vcount = jsonGetChildInt(json, "vcount");
 
 
-				auto pasteX = centerScreen ? ((viewRect.getCenterX() - (hcount * 16) / 2) / 16.0) * 16.0 : x;
+				auto pasteX = centerScreen ? std::floor((viewRect.getCenterX() - (hcount * 16) / 2) / 16.0) * 16.0 : x;
 				auto pasteY = centerScreen ? std::floor((viewRect.getCenterY() - (vcount * 16) / 2) / 16.0) * 16.0 : y;
 
 				auto tileSelection = new TileSelection(pasteX, pasteY, hcount, vcount);
@@ -1212,6 +1234,7 @@ namespace TilesEditor
 			else if (type == "objectSelection")
 			{
 				auto selection = new ObjectSelection(centerScreen ? viewRect.getCenterX() : x, centerScreen ? viewRect.getCenterY() : y);
+				selection->setSelectMode(ObjectSelection::SelectMode::MODE_INSERT);
 				selection->deserializeJSON(json, this);
 
 
@@ -1224,11 +1247,15 @@ namespace TilesEditor
 		}
 	}
 
-	void EditorTabWidget::newLevel(int hcount, int vcount)
+	void EditorTabWidget::newLevel(const QString& format, int hcount, int vcount)
 	{
 		m_level = new Level(this, 0, 0, hcount * 16, vcount * 16, nullptr, "");
 		m_level->getOrMakeTilemap(0)->clear(0);
 		m_level->setLoaded(true);
+
+		FileFormatManager::instance()->applyFormat(format, m_level);
+
+		m_graphicsView->setSceneRect(QRect(0, 0, m_level->getWidth(), m_level->getHeight()));
 		m_graphicsView->redraw();
 
 	}
@@ -1277,6 +1304,12 @@ namespace TilesEditor
 					if(viewRect.intersects(*level))
 						m_graphicsView->redraw();
 				}
+			}
+			else if (m_level && m_level->getName() == fileName)
+			{
+				m_level->setLoadFail(false);
+				loadLevel(m_level);
+				m_graphicsView->redraw();
 			}
 		}
 	}
@@ -1362,27 +1395,41 @@ namespace TilesEditor
 
 	void EditorTabWidget::updateMovedEntity(AbstractLevelEntity* entity)
 	{
-		if (m_overworld)
+		if (entity->getLevel())
 		{
-			if (entity->getLevel() && !entity->getLevel()->intersects(*entity))
+			auto overworld = entity->getLevel()->getOverworld();
+			if (overworld)
 			{
-				auto newLevel = this->getLevelAt(entity->getX(), entity->getY());
-				if (newLevel && newLevel != entity->getLevel())
+				//If the entity no longer intersects the level
+				if (!entity->getLevel()->intersects(*entity))
 				{
-					entity->getLevel()->removeObject(entity);
-					setModified(entity->getLevel());
+					//Find the new level
+					auto newLevel = overworld->getLevelAt(entity->getX(), entity->getY());
+					if (newLevel && newLevel != entity->getLevel())
+					{
+						entity->getLevel()->removeObject(entity);
+						setModified(entity->getLevel());
 
-					newLevel->addObject(entity);
-					entity->setLevel(newLevel);
-					setModified(newLevel);
-					return;
+						newLevel->addObject(entity);
+						entity->setLevel(newLevel);
+						setModified(newLevel);
+						return;
+					}
 				}
-			}
-			m_overworld->getEntitySpatialMap()->updateEntity(entity);
+
+			} 
+			entity->getLevel()->updateSpatialEntity(entity);
+
 		}
-		else if (m_level)
+
+	}
+
+	void EditorTabWidget::updateEntityRect(AbstractLevelEntity* entity)
+	{
+		if (entity->getLevel())
 		{
-			m_level->getEntitySpatialMap()->updateEntity(entity);
+			entity->getLevel()->updateSpatialEntity(entity);
+
 		}
 	}
 
@@ -1671,6 +1718,11 @@ namespace TilesEditor
 		
 	}
 
+	void EditorTabWidget::tilesetMouseWheel(QWheelEvent* event)
+	{
+		event->ignore();
+	}
+
 	void EditorTabWidget::tileObjectsMousePress(QMouseEvent* event)
 	{
 		auto tileObject = getCurrentTileObject();
@@ -1748,7 +1800,7 @@ namespace TilesEditor
 		{
 			if (ui.floodFillButton->isChecked())
 			{
-				addUndoCommand(new CommandFloodFillPattern2(this, pos.x(), pos.y(), m_selectedTilesLayer, &m_fillPattern));
+				addUndoCommand(new CommandFloodFillPattern(this, pos.x(), pos.y(), m_selectedTilesLayer, &m_fillPattern));
 				
 				m_graphicsView->redraw();
 				return;
@@ -1772,14 +1824,14 @@ namespace TilesEditor
 					if (m_selection->pointInSelection(pos.x(), pos.y()))
 					{
 						m_graphicsView->setCursor(Qt::CursorShape::OpenHandCursor);
-						m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier));
+						m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
 						return;
 					}
 					else {
 						if (QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ShiftModifier) && m_selection->getSelectionType() == SelectionType::SELECTION_OBJECTS)
 						{
 							doObjectSelection(pos.x(), pos.y(), true);
-							m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier));
+							m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
 							m_graphicsView->redraw();
 
 							return;
@@ -1827,7 +1879,7 @@ namespace TilesEditor
 						setStatusBar("Hint: Hold 'Shift' and double click the link to open the destination level", 1, 20000);
 				}
 				m_graphicsView->setCursor(Qt::CursorShape::OpenHandCursor);
-				m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier));
+				m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
 				m_graphicsView->redraw();
 				return;
 			}
@@ -1839,7 +1891,7 @@ namespace TilesEditor
 			}
 
 			
-			m_selector.beginSelection(pos.x(), pos.y(), 16, 16);
+			m_selector.beginSelection(pos.x(), pos.y(), std::ceil(getSnapX() / 16.0) * 16.0, std::ceil(getSnapY() / 16.0) * 16.0);
 			m_graphicsView->redraw();
 		}
 		else if (event->button() == Qt::MouseButton::RightButton)
@@ -1853,10 +1905,12 @@ namespace TilesEditor
 				Rectangle rect(pos.x(), pos.y(), 1, 1);
 				if (rect.intersects(selection)) {
 					doTileSelection();
+					m_selector.setVisible(false);
 				}
-				m_selector.setVisible(false);
-				selectorGone();
-
+				else {
+					m_selector.setVisible(false);
+					selectorGone();
+				}
 				
 			}
 
@@ -1868,13 +1922,13 @@ namespace TilesEditor
 			}
 
 			//Copy-paste via right click
-			if (m_selection && m_selection->pointInSelection(pos.x(), pos.y()))
+			if (m_selection && !m_selection->getAlternateSelectionMethod() && m_selection->pointInSelection(pos.x(), pos.y()))
 			{
 				m_selection->clipboardCopy();
 				doPaste(false);
 
 				if (m_selection) {
-					m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier));
+					m_selection->setDragOffset(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
 				}
 				return;
 
@@ -1896,8 +1950,8 @@ namespace TilesEditor
 					EntityAction(AbstractLevelEntity* entity, const QString& text):
 						QAction(text), m_entity(entity)
 					{
-						if(entity->getIcon())
-							this->setIcon(entity->getIcon()->pixmap());
+
+						this->setIcon(entity->getIcon());
 
 					}
 
@@ -2024,7 +2078,7 @@ namespace TilesEditor
 				if (m_overworld)
 				{
 					QString result;
-					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " (" << localTileX << ", " << localTileY << ") Tile: " << displayTile;
+					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " (" << localTileX << ", " << localTileY << ", " << level->getName() << ") Tile: " << displayTile;
 					emit setStatusBar(result, 0, 20000);
 				}
 				else {
@@ -2052,13 +2106,23 @@ namespace TilesEditor
 
 					if (m_selection->resizing())
 					{
-						m_selection->updateResize(pos.x(), pos.y(), true, this);
+						m_selection->updateResize(pos.x(), pos.y(), true, getSnapX(), getSnapY(), this);
 						m_graphicsView->redraw();
 						return;
 					}
 
-					m_selection->drag(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), this);
-					m_graphicsView->redraw();
+					auto oldRect = m_selection->getDrawRect();
+					m_selection->drag(pos.x(), pos.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY(), this);
+					
+					auto newRect = m_selection->getDrawRect();
+					
+					auto left = std::min(oldRect.getX(), newRect.getX()) - 4;
+					auto top = std::min(oldRect.getY(), newRect.getY()) - 4;
+					auto right = std::max(oldRect.getRight(), newRect.getRight()) + 4;
+					auto bottom = std::max(oldRect.getBottom(), newRect.getBottom()) + 4;
+					m_graphicsView->scene()->update(left, top, right - left, bottom - top);
+
+					
 					return;
 				}
 
@@ -2071,14 +2135,18 @@ namespace TilesEditor
 
 			if (m_selection->getAlternateSelectionMethod())
 			{
-				/*m_selection->drag(
-					std::round((pos.x() - m_selection->getWidth() / 2) / 16.0) * 16.0,
-					std::round((pos.y() - m_selection->getHeight() / 2) / 16.0) * 16.0,
-					true, this);*/
+				auto oldRect = m_selection->getDrawRect();
 
 				m_selection->drag(pos.x() - m_selection->getWidth() / 2, pos.y() - m_selection->getHeight() / 2,
-					true, this);
-				m_graphicsView->redraw();
+					true, getSnapX(), getSnapY(), this);
+
+				auto newRect = m_selection->getDrawRect();
+				auto left = std::min(oldRect.getX(), newRect.getX()) - 4;
+				auto top = std::min(oldRect.getY(), newRect.getY()) - 4;
+				auto right = std::max(oldRect.getRight(), newRect.getRight()) + 4;
+				auto bottom = std::max(oldRect.getBottom(), newRect.getBottom()) + 4;
+				m_graphicsView->scene()->update(left, top, right - left, bottom - top);
+
 				return;
 
 			}
@@ -2111,9 +2179,16 @@ namespace TilesEditor
 
 		if (m_selector.selecting())
 		{
+			auto oldRect = m_selector.getSelection();
 			m_selector.setVisible(true);
 			m_selector.updateSelection(pos.x(), pos.y());
-			m_graphicsView->redraw();
+			auto newRect = m_selector.getSelection();
+
+			auto left = std::min(oldRect.getX(), newRect.getX()) - 4;
+			auto top = std::min(oldRect.getY(), newRect.getY()) - 4;
+			auto right = std::max(oldRect.getRight(), newRect.getRight()) + 4;
+			auto bottom = std::max(oldRect.getBottom(), newRect.getBottom()) + 4;
+			m_graphicsView->scene()->update(left, top, right - left, bottom - top);
 		}
 		else if (m_selector.visible())
 		{
@@ -2165,92 +2240,8 @@ namespace TilesEditor
 		}
 	}
 
-	int EditorTabWidget::floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<QPair<unsigned short, unsigned short>>* outputNodes)
-	{
-		QSet<QPair<int, int>> scannedIndexes;
-		auto startTileX = int(std::floor(x / 16));
-		auto startTileY = int(std::floor(y / 16));
-
-		auto startTileX2 = (int)std::ceil(double(startTileX) / pattern->getHCount()) * pattern->getHCount();
-		auto startTileY2 = (int)std::ceil(double(startTileY) / pattern->getVCount()) * pattern->getVCount();
-		
-		auto startTile = 0;
-		if (tryGetTileAt(startTileX * 16, startTileY * 16, &startTile))
-		{
-			QStack<QPair<int, int> > nodes;
-			auto addNode = [&](int x, int y)
-			{
-				QPair<int, int> a(x, y);
-
-				if (!scannedIndexes.contains(a))
-				{
-					scannedIndexes.insert(a);
-					nodes.push(a);
-				}
-
-			};
-			addNode(startTileX, startTileY);
-
-			Level* level = nullptr;
-			while (nodes.count() > 0)
-			{
-				auto node = nodes.pop();
-
-				auto nodeXPos = node.first * 16.0;
-				auto nodeYPos = node.second * 16.0;
-
-				if (level == nullptr || nodeXPos < level->getX() || nodeXPos >= level->getRight() || nodeYPos < level->getY() || nodeYPos >= level->getBottom())
-					level = getLevelAt(nodeXPos, nodeYPos);
-
-				if (level != nullptr)
-				{
-					auto tilemap = level->getTilemap(m_selectedTilesLayer);
-					if (tilemap != nullptr)
-					{
-						//left/top position within the destination "Tilemap"
-						auto tilemapX = node.first - int(std::floor(tilemap->getX() / 16.0));
-						auto tilemapY = node.second - int(std::floor(tilemap->getY() / 16.0));
-
-						//Get the correct pattern co-ordinates
-						auto deltaX = startTileX2 + (node.first - startTileX);
-						auto deltaY = startTileY2 + (node.second - startTileY);
-
-						auto patternTileX = deltaX % pattern->getHCount();
-						auto patternTileY = deltaY % pattern->getVCount();
-
-
-						auto patternTile = pattern->getTile(patternTileX, patternTileY);
-						int tile = 0;
-						if (tilemap->tryGetTile(tilemapX, tilemapY, &tile) && !Tilemap::IsInvisibleTile(tile))
-						{
-							if (tile == startTile)
-							{
-								setModified(level);
-
-								if (outputNodes)
-									outputNodes->push_back(QPair<unsigned short, unsigned short>((unsigned short)node.first, (unsigned short)node.second));
-
-								tilemap->setTile(tilemapX, tilemapY, patternTile);
-
-
-								addNode(node.first - 1, node.second);
-								addNode(node.first, node.second - 1);
-
-								addNode(node.first + 1, node.second);
-								addNode(node.first, node.second + 1);
-
-								
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return startTile;
-	}
-
-	void EditorTabWidget::floodFillPattern2(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes)
+	
+	void EditorTabWidget::floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes)
 	{
 		QSet<int> startTiles;
 		QSet<QPair<int, int>> scannedIndexes;
@@ -2545,7 +2536,7 @@ namespace TilesEditor
 			auto link = new LevelLink(this, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), false);
 			link->setLevel(rootLinkLevel);
 
-			EditLinkDialog frm(link, this);
+			EditLinkDialog frm(link, this, false);
 			if (frm.exec() == QDialog::Accepted)
 			{
 				auto undoCommand = new QUndoCommand();
@@ -2741,7 +2732,11 @@ namespace TilesEditor
 				QString fullPath;
 
 				if (m_resourceManager.locateFile(m_level->getName(), &fullPath))
+				{
+					QFileInfo fi(fullPath);
+					getResourceManager().addSearchDirRecursive(fi.absolutePath());
 					m_level->setFileName(fullPath);
+				}
 			}
 			if (saveLevel(m_level))
 			{
@@ -2754,7 +2749,7 @@ namespace TilesEditor
 	{
 		if (m_level)
 		{
-			auto fullPath = QFileDialog::getSaveFileName(nullptr, "Save Level As", QString(), "All Level Files (*.nw *.lvl *.graal *.zelda)");
+			auto fullPath = m_resourceManager.getFileSystem()->getSaveFileName("Save Level As", QString(), FileFormatManager::instance()->getLevelSaveFilters());
 
 			if (!fullPath.isEmpty())
 			{
@@ -2763,8 +2758,12 @@ namespace TilesEditor
 				m_level->setName(fi.fileName());
 				m_level->setFileName(fullPath);
 
+				getResourceManager().addSearchDirRecursive(fi.absolutePath());
+				FileFormatManager::instance()->applyFormat(m_level);
 				if (saveLevel(m_level))
 					setUnmodified();
+
+				m_graphicsView->redraw();
 			}
 		}
 	}
@@ -2799,6 +2798,16 @@ namespace TilesEditor
 		auto tilesetName = ui_tilesetsClass.tilesetsCombo->currentText();
 
 		setTileset(tilesetName);
+
+		if (m_overworld)
+		{
+			m_overworld->setTilesetImageName(m_tileset.getImageName());
+			setModified(nullptr);
+		}
+		else if (m_level) {
+			m_level->setTilesetImageName(m_tileset.getImageName());
+			setModified(m_level);
+		}
 
 		m_resourceManager.updateResource(m_tileset.getImageName());
 		ui_tilesetsClass.graphicsView->redraw();
@@ -2836,6 +2845,7 @@ namespace TilesEditor
 
 	void EditorTabWidget::tilesetOpenClicked(bool checked)
 	{
+		
 		auto fileName = QFileDialog::getOpenFileName(nullptr, "Select Tileset", m_resourceManager.getRootDir(), "Image Files (*.png *.gif);;JSON File (*.json)");
 		if (!fileName.isEmpty())
 		{
@@ -2941,7 +2951,7 @@ namespace TilesEditor
 												char byte2 = tileData[1 + ii * 2].unicode();
 
 												auto graalTile = (int)((base64.indexOf(byte1) << 6) + base64.indexOf(byte2));
-												auto tile = Level::convertFromGraalTile(graalTile);
+												auto tile = Level::convertFromGraalTile(graalTile, nullptr);
 												tileObject->setTile(ii, y, tile);
 
 											}
@@ -3282,10 +3292,10 @@ namespace TilesEditor
 	}
 
 	bool EditorTabWidget::saveLevel(Level* level)
-	{
+	{ 
 		if (level->getFileName().isEmpty())
 		{
-			auto fullPath = QFileDialog::getSaveFileName(nullptr, "Save Level", QString(), "All Level Files (*.nw *.lvl *.graal *.zelda)");
+			auto fullPath = m_resourceManager.getFileSystem()->getSaveFileName("Save Level", QString(), FileFormatManager::instance()->getLevelSaveFilters());
 
 			if (!fullPath.isEmpty())
 			{
@@ -3293,6 +3303,9 @@ namespace TilesEditor
 
 				level->setName(fi.fileName());
 				level->setFileName(fullPath);
+				getResourceManager().addSearchDirRecursive(fi.absolutePath());
+
+				FileFormatManager::instance()->applyFormat(m_level);
 			}
 		}
 

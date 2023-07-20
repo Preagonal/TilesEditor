@@ -13,13 +13,13 @@ namespace TilesEditor
 	{
 		if (m_modified)
 		{
-			m_npc->setCode(ui.plainTextEdit->toPlainText());
+			
 
 			m_npc->setX(ui.xText->text().toDouble() * m_npc->getUnitWidth());
 			m_npc->setY(ui.yText->text().toDouble() * m_npc->getUnitHeight());
 
 			m_npc->setImageName(ui.imageText->text());
-
+			m_npc->setCode(ui.plainTextEdit->toPlainText());
 			m_world->setModified(m_npc->getLevel());
 
 			m_world->updateMovedEntity(m_npc);
@@ -31,7 +31,7 @@ namespace TilesEditor
 	{
 		if (m_modified)
 		{
-			if (QMessageBox::question(nullptr, "Changes made", "You have made changes to the NPC. Are you want to close?") == QMessageBox::Yes)
+			if (QMessageBox::question(nullptr, "Changes made", "You have made changes to the NPC. Are you sure you want to close?") == QMessageBox::Yes)
 			{
 				QDialog::reject();
 			}
@@ -40,8 +40,7 @@ namespace TilesEditor
 
 	void EditAnonymousNPC::imageBrowsePressed()
 	{
-
-		auto fileName = QFileDialog::getOpenFileName(nullptr, "Select Image", m_world->getResourceManager().getRootDir(), "Image Files (*.png *.gif)");
+		auto fileName = m_world->getResourceManager().getFileSystem()->getOpenFileName("Select Image", m_world->getResourceManager().getRootDir(), "Image Files (*.png *.gif)");
 		if (!fileName.isEmpty())
 		{
 			QFileInfo fi(fileName);

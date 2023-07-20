@@ -16,7 +16,7 @@ namespace TilesEditor
     class EntitySpatialGrid :
         public IEntitySpatialMap<T>
     {
-    private:
+    private: 
         double m_x;
         double m_y;
 
@@ -251,9 +251,14 @@ namespace TilesEditor
 
         void add(T* entity)
         {
+            if (entity->m_spatialGridAdded) {
+                return;
+            }
+
             auto x = entity->getX() - m_x;
             auto y = entity->getY() - m_y;
 
+            entity->m_spatialGridAdded = true;
             entity->m_spacialGridLeft = (int)std::max(std::floor(x / m_cellWidth), 0.0);
             entity->m_spacialGridTop = (int)std::max(std::floor(y / m_cellHeight), 0.0);
             entity->m_spacialGridRight = (int)std::min(std::ceil((x + entity->getWidth()) / m_cellWidth), (double)m_hcount);
@@ -281,10 +286,14 @@ namespace TilesEditor
                 }
             }
             entity->m_spacialGridTop = entity->m_spacialGridLeft = entity->m_spacialGridBottom = entity->m_spacialGridRight = 0;
+            entity->m_spatialGridAdded = false;
         }
 
         void updateEntity(T* entity)
         {
+            if (!entity->m_spatialGridAdded)
+                return;
+
             auto x = entity->getX() - m_x;
             auto y = entity->getY() - m_y;
 
@@ -305,6 +314,7 @@ namespace TilesEditor
                 entity->m_spacialGridTop = top;
                 entity->m_spacialGridRight = right;
                 entity->m_spacialGridBottom = bottom;
+                entity->m_spatialGridAdded = true;
 
                 for (auto y = entity->m_spacialGridTop; y < entity->m_spacialGridBottom; ++y)
                 {

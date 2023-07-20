@@ -26,7 +26,7 @@ namespace TilesEditor
 
 		LevelEntityType getEntityType() const override { return LevelEntityType::ENTITY_SIGN; }
 
-		cJSON* serializeJSON() override;
+		cJSON* serializeJSON(bool useLocalCoordinates = false) override;
 		void deserializeJSON(cJSON* json) override;
 
 		void draw(QPainter* painter, const IRectangle& viewRect, double x, double y) override;
@@ -41,12 +41,12 @@ namespace TilesEditor
 		void openEditor() override;
 
 		QString toString() const override { return QString("[Sign: %1, %2]").arg(getX()).arg(getY()); }
-		void setDragOffset(double x, double y, bool snap) override {
-			AbstractLevelEntity::setDragOffset(x, y, true);
+		void setDragOffset(double x, double y, bool snap, double snapX, double snapY) override {
+			AbstractLevelEntity::setDragOffset(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
 		}
 
-		void drag(double x, double y, bool snap) override {
-			AbstractLevelEntity::drag(x, y, true);
+		void drag(double x, double y, bool snap, double snapX, double snapY) override {
+			AbstractLevelEntity::drag(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
 		}
 
 		AbstractLevelEntity* duplicate() override {

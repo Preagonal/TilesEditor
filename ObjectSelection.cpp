@@ -9,6 +9,7 @@
 #include "LevelChest.h"
 #include "LevelSign.h"
 #include "LevelGraalBaddy.h"
+#include "ObjectFactory.h"
 
 namespace TilesEditor
 {
@@ -40,24 +41,24 @@ namespace TilesEditor
         return false;
     }
 
-    void ObjectSelection::drag(double x, double y, bool snap, IWorld* world)
+    void ObjectSelection::drag(double x, double y, bool snap, double snapX, double snapY, IWorld* world)
     {
-        AbstractSelection::drag(x, y, snap, world);
+        AbstractSelection::drag(x, y, snap, snapX, snapY, world);
 
         for (auto object : m_selectedObjects)
         {
-            object->drag(x, y, snap);
+            object->drag(x, y, snap, snapX, snapY);
 
         }
     }
 
-    void ObjectSelection::setDragOffset(double x, double y, bool snap)
+    void ObjectSelection::setDragOffset(double x, double y, bool snap, double snapX, double snapY)
     {
-        AbstractSelection::setDragOffset(x, y, snap);
+        AbstractSelection::setDragOffset(x, y, snap, snapX, snapY);
 
         for (auto object : m_selectedObjects)
         {
-            object->setDragOffset(x, y, snap);
+            object->setDragOffset(x, y, snap, snapX, snapY);
         }
     }
 
@@ -70,13 +71,44 @@ namespace TilesEditor
                 auto undoCommand = new QUndoCommand();
                 for (auto object : m_selectedObjects)
                 {
-
-                    auto level = world->getLevelAt(object->getCenterX(), object->getCenterY());
-
-                    if (level != nullptr)
+                    if (object->getEntityType() == LevelEntityType::ENTITY_LINK || object->getEntityType() == LevelEntityType::ENTITY_SIGN)
                     {
-                        object->setLevel(level);
-                        new CommandAddEntity(world, object, undoCommand);
+                        //Links and signs will be split up across overlapping levels
+                        auto levels = world->getLevelsInRect(*object);
+                        for (auto level : levels)
+                        {
+
+                            //Duplicate our object
+                            auto newObject = object->duplicate();
+                            if (newObject)
+                            {
+                                newObject->setLevel(level);
+                                auto rect = level->clampEntity(newObject);
+                                newObject->setX(rect.getX());
+                                newObject->setY(rect.getY());
+                                newObject->setWidth(rect.getWidth());
+                                newObject->setHeight(rect.getHeight());
+
+                                //Special case for graal signs. They're always 2 blocks wide (32 pixels)
+                                if (newObject->getEntityType() == LevelEntityType::ENTITY_SIGN)
+                                    newObject->setWidth(32);
+
+                                new CommandAddEntity(world, newObject, undoCommand);
+                            }
+                            
+                        }
+
+                        delete object;
+                        
+                    }
+                    else {
+                        auto level = world->getLevelAt(object->getCenterX(), object->getCenterY());
+
+                        if (level != nullptr)
+                        {
+                            object->setLevel(level);
+                            new CommandAddEntity(world, object, undoCommand);
+                        }
                     }
                     
                 }
@@ -106,6 +138,7 @@ namespace TilesEditor
                                 if (object->getEntityType() == LevelEntityType::ENTITY_SIGN)
                                     newRect.setWidth(32);
 
+                                level->addEntityToSpatialMap(object);
                                 new CommandReshapeEntity(world, oldRect, newRect, object, undoCommand);
 
 
@@ -141,6 +174,10 @@ namespace TilesEditor
 
                     }else 
                     {
+
+                        if (object->getLevel())
+                            object->getLevel()->addEntityToSpatialMap(object);
+
                         //Npc,chest, etc
                         new CommandMoveEntity(world, object->getStartRect(), *object, object, undoCommand);
 
@@ -166,7 +203,16 @@ namespace TilesEditor
 
             world->deleteEntities(m_selectedObjects, undoCommand);
             world->addUndoCommand(undoCommand);
-        }else world->deleteEntities(m_selectedObjects);
+        }
+        else if (m_selectMode == SelectMode::MODE_INSERT)
+        {
+            for (auto obj : m_selectedObjects)
+            {
+                obj->releaseResources();
+                delete obj;
+            }
+            
+        }
 
         m_selectedObjects.clear();
     }
@@ -240,21 +286,8 @@ namespace TilesEditor
                 if (jsonObj)
                 {
                     auto objectType = jsonGetChildString(jsonObj, "type");
+                    auto entity = ObjectFactory::createObject(world, objectType, jsonObj);
 
-                    AbstractLevelEntity* entity = nullptr;
-
-                    if (objectType == "levelNPCv1")
-                        entity = new LevelNPC(world, jsonObj);
-                    else if (objectType == "levelLink")
-                        entity = new LevelLink(world, jsonObj);
-                    else if (objectType == "levelChest")
-                        entity = new LevelChest(world, jsonObj);
-
-                    else if (objectType == "levelSign")
-                        entity = new LevelSign(world, jsonObj);
-
-                    else if(objectType == "levelBaddy")
-                        entity = new LevelGraalBaddy(world, jsonObj);
                     if (entity)
                     {
                         auto offsetX = entity->getX() - x;
@@ -296,11 +329,11 @@ namespace TilesEditor
     }
 
 
-    void ObjectSelection::updateResize(int mouseX, int mouseY, bool snap, IWorld* world)
+    void ObjectSelection::updateResize(int mouseX, int mouseY, bool snap, double snapX, double snapY, IWorld* world)
     {
         if (canResize())
         {
-            m_selectedObjects.first()->updateResize(getResizeEdges(), mouseX, mouseY, snap);
+            m_selectedObjects.first()->updateResize(getResizeEdges(), mouseX, mouseY, snap, snapX, snapY);
 
             world->setModified(m_selectedObjects.first()->getLevel());
         }
@@ -348,5 +381,32 @@ namespace TilesEditor
         }
        
         return 0;
+    }
+
+    Rectangle ObjectSelection::getDrawRect() const
+    {
+        if (m_selectedObjects.size() > 0)
+        {
+            double left = m_selectedObjects.first()->getX();
+            double top = m_selectedObjects.first()->getY();
+            double right = m_selectedObjects.first()->getRight();
+            double bottom = m_selectedObjects.first()->getBottom();
+
+            for (int i = 1; i < m_selectedObjects.size(); ++i)
+            {
+                auto obj = m_selectedObjects[i];
+
+                left = std::min(obj->getX(), left);
+                top = std::min(obj->getY(), top);
+                right = std::max(obj->getRight(), right);
+                bottom = std::max(obj->getBottom(), bottom);
+            }
+            return Rectangle(left, top, right - left, bottom - top);
+        }
+
+        return Rectangle();
+
+
+
     }
 }

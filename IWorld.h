@@ -36,7 +36,13 @@ namespace TilesEditor
 		virtual bool containsLevel(const QString& levelName)const = 0;
 		virtual void centerLevel(const QString& levelName) = 0;
 		virtual void setModified(Level* level) = 0;
+
+		//Call this when the x/y changes
 		virtual void updateMovedEntity(AbstractLevelEntity* entity) = 0;
+
+		//Call this when the width/height changes
+		virtual void updateEntityRect(AbstractLevelEntity* entity) = 0;
+
 		virtual QList<Level*> getModifiedLevels() = 0;
 
 		virtual int getUnitWidth() const = 0;
@@ -49,8 +55,7 @@ namespace TilesEditor
 		virtual void getTiles(double x, double y, int layer, Tilemap* output) = 0;
 		virtual void putTiles(double x, double y, int layer, Tilemap* input, bool ignoreInvisible) = 0;
 		virtual void deleteTiles(double x, double y, int layer, int hcount, int vcount, int replacementTile) = 0;
-		virtual int floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<QPair<unsigned short, unsigned short> >* outputNodes = nullptr) = 0;
-		virtual void floodFillPattern2(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes = nullptr) = 0;
+		virtual void floodFillPattern(double x, double y, int layer, const Tilemap* pattern, QList<TileInfo>* outputNodes = nullptr) = 0;
 		virtual void addUndoCommand(QUndoCommand* command) = 0;
 	};
 };

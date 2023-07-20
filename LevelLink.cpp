@@ -3,6 +3,7 @@
 #include "AbstractSelection.h"
 #include "cJSON/JsonHelper.h"
 #include "EditLinkDialog.h"
+#include "Level.h"
 
 namespace TilesEditor
 {
@@ -36,13 +37,21 @@ namespace TilesEditor
 		m_nextY = nextY;
 	}
 
-	cJSON* LevelLink::serializeJSON()
+	cJSON* LevelLink::serializeJSON(bool useLocalCoordinates)
 	{
 		auto json = cJSON_CreateObject();
 
 		cJSON_AddStringToObject(json, "type", "levelLink");
-		cJSON_AddNumberToObject(json, "x", getX());
-		cJSON_AddNumberToObject(json, "y", getY());
+
+		if (useLocalCoordinates && getLevel()) {
+			cJSON_AddNumberToObject(json, "x", getX() - getLevel()->getX());
+			cJSON_AddNumberToObject(json, "y", getY() - getLevel()->getY());
+		}
+		else {
+			cJSON_AddNumberToObject(json, "x", getX());
+			cJSON_AddNumberToObject(json, "y", getY());
+		}
+
 		cJSON_AddNumberToObject(json, "width", getWidth());
 		cJSON_AddNumberToObject(json, "height", getHeight());
 		cJSON_AddStringToObject(json, "nextLevel", getNextLevel().toLocal8Bit().data());
@@ -78,17 +87,17 @@ namespace TilesEditor
 
 	}
 
-	void LevelLink::setDragOffset(double x, double y, bool snap) {
-		AbstractLevelEntity::setDragOffset(x, y, true);
+	void LevelLink::setDragOffset(double x, double y, bool snap, double snapX, double snapY) {
+		AbstractLevelEntity::setDragOffset(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
 	}
 
-	void LevelLink::drag(double x, double y, bool snap) {
-		AbstractLevelEntity::drag(x, y, true);
+	void LevelLink::drag(double x, double y, bool snap, double snapX, double snapY) {
+		AbstractLevelEntity::drag(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
 	}
 
 	void LevelLink::openEditor()
 	{
-		EditLinkDialog form(this, getWorld());
+		EditLinkDialog form(this, getWorld(), true);
 		form.exec();
 	}
 

@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="/MainWindow">
+    <file>icons/fugue/layer-shade.png</file>
+    <file>icons/fugue/document--pencil.png</file>
+    <file>icons/fugue/pencil.png</file>
+    <file>icons/grid-snap.png</file>
     <file>icons/grid.png</file>
     <file>icons/fugue/eye--pencil.png</file>
     <file>icons/fugue/application-sidebar-collapse.png</file>

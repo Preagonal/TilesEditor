@@ -43,15 +43,25 @@ namespace TilesEditor
 		int getWidth() const override { return 32; }
 		int getHeight() const override { return 32; }
 
-		QString toString() const override { return QString("[Chest: %1, %2]").arg(getX()).arg(getY()); }
+		QString toString() const override { return QString("[Chest: %1, %2, %3]").arg(m_itemName).arg(getX()).arg(getY()); }
 
+		QPixmap getIcon() override;
 		void openEditor() override;
 		AbstractLevelEntity* duplicate() override {
 			return nullptr;
 		}
 
-		cJSON* serializeJSON() override;
+		cJSON* serializeJSON(bool useLocalCoordinates = false) override;
 		void deserializeJSON(cJSON* json) override;
+
+		void setDragOffset(double x, double y, bool snap, double snapX, double snapY) override {
+			AbstractLevelEntity::setDragOffset(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
+		}
+
+		void drag(double x, double y, bool snap, double snapX, double snapY) override {
+			AbstractLevelEntity::drag(x, y, true, std::ceil(snapX / 16.0) * 16.0, std::ceil(snapY / 16.0) * 16.0);
+		}
+
 
 		static Image* getChestImage() {
 			static auto retval = new Image("", QPixmap(":/MainWindow/icons/chest.png"));

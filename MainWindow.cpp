@@ -10,6 +10,12 @@
 #include "EditAnonymousNPC.h"
 #include "MainFileSystem.h"
 #include "LevelConverter.h"
+#include "FileFormatManager.h"
+#include "NewLevelDialog.h"
+
+#include "LevelFormatNW.h"
+#include "LevelFormatGraal.h"
+#include "LevelFormatLVL.h"
 
 namespace TilesEditor
 {
@@ -55,12 +61,19 @@ namespace TilesEditor
 
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::openFile);
         connect(ui.actionNew, &QAction::triggered, this, &MainWindow::newLevel);
+        connect(ui.actionActionNewCustom, &QAction::triggered, this, &MainWindow::newCustomLevel);
         connect(ui.actionAbout, &QAction::triggered, this, &MainWindow::aboutClicked);
         connect(ui.actionLevelConverter, &QAction::triggered, this, &MainWindow::levelConvert);
         connect(ui.actionRC, &QAction::triggered, this, &MainWindow::rcClicked);
 
         connect(ui.levelsTab, &QTabWidget::currentChanged, this, &MainWindow::tabChanged);
         connect(ui.levelsTab, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTabIndexSlot);
+
+        FileFormatManager::instance()->registerLevelExtension("lvl", new LevelFormatLVL());
+        FileFormatManager::instance()->registerLevelExtension("nw", new LevelFormatNW());
+        FileFormatManager::instance()->registerLevelExtension(QStringList({ "graal", "zelda", "editor"}), new LevelFormatGraal());
+
+        
     }
 
     MainWindow::~MainWindow()
@@ -147,7 +160,7 @@ namespace TilesEditor
 
     EditorTabWidget * MainWindow::openLevelFilename(const QString &fileName, AbstractFileSystem *fs)
     {
-        auto tabPage = createNewTab(fs);
+        auto tabPage = createNewTab();
 
         QFileInfo fi(fileName);
 
@@ -163,8 +176,14 @@ namespace TilesEditor
 
     void MainWindow::openFile(bool checked)
     {
-        auto fileName = QFileDialog::getOpenFileName(this, "Select level", QString(), "All supported files (*.nw *.graal *.zelda *.gmap *.lvl *.world *.txt)");
+        auto allLevelExtensions = FileFormatManager::instance()->getAllLevelLoadExtensions();
+        for (auto& ext : allLevelExtensions)
+            ext = "*." + ext;
 
+        auto allSupportedFilesFilter = QString("All Supported Files (*.gmap *.world %1)").arg(allLevelExtensions.join(" "));
+        auto filters = QStringList({ allSupportedFilesFilter, "Overworld Files (*.gmap *.world)", FileFormatManager::instance()->getLevelLoadFilters(), "All Files (*.*)"}).join(";;");
+        auto fileName = QFileDialog::getOpenFileName(nullptr, "Select level", QString(), filters);
+        
         if (!fileName.isEmpty())
         {
 			openLevelFilename(fileName, nullptr);
@@ -174,9 +193,22 @@ namespace TilesEditor
     void MainWindow::newLevel(bool checked)
     {
         auto tabPage = createNewTab();
-        tabPage->newLevel(64, 64);
+        tabPage->newLevel("nw", 64, 64);
 
         ui.levelsTab->addTab(tabPage, "new");
+    }
+
+    void MainWindow::newCustomLevel(bool checked)
+    {
+        NewLevelDialog form(this);
+        if (form.exec() == QDialog::Accepted)
+        {
+            auto tabPage = createNewTab();
+            tabPage->newLevel(form.getFormat(), form.getHCount(), form.getVCount());
+           
+           
+            ui.levelsTab->addTab(tabPage, "new");
+        }
     }
 
 
@@ -276,7 +308,7 @@ namespace TilesEditor
 
     void MainWindow::levelConvert(bool checked)
     {
-        LevelConverter converter;
+        LevelConverter converter(&m_tilesetList);
         converter.exec();
     }
 

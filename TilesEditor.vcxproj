@@ -112,6 +112,8 @@
     <ClCompile Include="EditorTabWidget.cpp" />
     <ClCompile Include="EditSignsDialog.cpp" />
     <ClCompile Include="EditTilesetDialog.cpp" />
+    <ClCompile Include="ExternalNPCInspector.cpp" />
+    <ClCompile Include="FileFormatManager.cpp" />
     <ClCompile Include="FixMapNamesDialog.cpp" />
     <ClCompile Include="GraphicsView.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -120,13 +122,18 @@
     <ClCompile Include="LevelChest.cpp" />
     <ClCompile Include="LevelCommands.cpp" />
     <ClCompile Include="LevelConverter.cpp" />
+    <ClCompile Include="LevelFormatGraal.cpp" />
+    <ClCompile Include="LevelFormatLVL.cpp" />
+    <ClCompile Include="LevelFormatNW.cpp" />
     <ClCompile Include="LevelGraalBaddy.cpp" />
     <ClCompile Include="LevelLink.cpp" />
     <ClCompile Include="LevelNPC.cpp" />
     <ClCompile Include="LevelSign.cpp" />
     <ClCompile Include="ListLinksDialog.cpp" />
     <ClCompile Include="MainFileSystem.cpp" />
+    <ClCompile Include="NewLevelDialog.cpp" />
     <ClCompile Include="NewOverworldDialog.cpp" />
+    <ClCompile Include="ObjectFactory.cpp" />
     <ClCompile Include="ObjectListModel.cpp" />
     <ClCompile Include="ObjectSelection.cpp" />
     <ClCompile Include="ObjectsWidget.cpp" />
@@ -165,14 +172,15 @@
     <QtUic Include="EditorTabWidget.ui" />
     <QtUic Include="EditSignsDialog.ui" />
     <QtUic Include="EditTilesetDialog.ui" />
+    <QtUic Include="ExternalNPCInspector.ui" />
     <QtUic Include="FixMapNamesDialog.ui" />
     <QtUic Include="LevelConverter.ui" />
     <QtUic Include="ListLinksDialog.ui" />
     <QtUic Include="MainWindow.ui" />
     <QtMoc Include="MainWindow.h" />
-    <ClCompile Include="EntitySpatialGrid.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <QtUic Include="NewLevelDialog.ui" />
     <QtUic Include="NewOverworldDialog.ui" />
     <QtUic Include="ObjectsWidget.ui" />
     <QtUic Include="SaveOverworldDialog.ui" />
@@ -194,23 +202,32 @@
     <QtMoc Include="EditSignsDialog.h" />
     <QtMoc Include="CustomPaintWidget.h" />
     <QtMoc Include="EditExternalNPC.h" />
+    <ClInclude Include="AbstractSpatialGridItem.h" />
     <ClInclude Include="cJSON\cJSON.h" />
     <ClInclude Include="cJSON\JsonHelper.h" />
     <QtMoc Include="EditTilesetDialog.h" />
     <QtMoc Include="EditChestDialog.h" />
     <QtMoc Include="EditBaddy.h" />
     <QtMoc Include="FixMapNamesDialog.h" />
+    <QtMoc Include="ExternalNPCInspector.h" />
     <ClInclude Include="IFileRequester.h" />
+    <ClInclude Include="ILevelFormat.h" />
     <ClInclude Include="LevelChest.h" />
     <ClInclude Include="LevelCommands.h" />
     <QtMoc Include="LevelConverter.h" />
     <ClInclude Include="LevelFactory.h" />
+    <ClInclude Include="LevelFormatGraal.h" />
+    <ClInclude Include="LevelFormatLVL.h" />
+    <ClInclude Include="FileFormatManager.h" />
+    <ClInclude Include="LevelFormatNW.h" />
     <ClInclude Include="LevelGraalBaddy.h" />
     <ClInclude Include="LevelLink.h" />
     <ClInclude Include="LevelNPC.h" />
     <ClInclude Include="LevelSign.h" />
     <QtMoc Include="ListLinksDialog.h" />
     <QtMoc Include="NewOverworldDialog.h" />
+    <QtMoc Include="NewLevelDialog.h" />
+    <ClInclude Include="ObjectFactory.h" />
     <ClInclude Include="ObjectListModel.h" />
     <ClInclude Include="ObjectSelection.h" />
     <QtMoc Include="QCodeEditor\include\KGL\Design\QCodeEditorDesign.hpp" />
@@ -253,6 +270,9 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="ResourceType.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TilesEditor.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -6,7 +6,7 @@
 #include <map>
 #include <cstdio>
 #include "Rectangle.h"
-#include "ISpatialMapItem.h"
+#include "AbstractSpatialGridItem.h"
 #include "RefCounter.h"
 #include "LevelEntityType.h"
 #include "ResourceManager.h"
@@ -18,7 +18,8 @@ namespace TilesEditor
 {
 	class Level;
 	class AbstractLevelEntity :
-		public ISpatialMapItem, public RefCounter
+		public AbstractSpatialGridItem, 
+		public RefCounter
 	{
 
 	private:
@@ -91,8 +92,8 @@ namespace TilesEditor
 		}
 
 		virtual QString toString() const { return ""; }
-		virtual Image* getIcon() { return nullptr; }
-		virtual cJSON* serializeJSON() { return nullptr; };
+		virtual QPixmap getIcon() { return QPixmap(); }
+		virtual cJSON* serializeJSON(bool useLocalCoordinates = false) { return nullptr; };
 		virtual void deserializeJSON(cJSON* json) {}
 
 	
@@ -106,12 +107,12 @@ namespace TilesEditor
 		virtual double getDepth() const { return 0.0; }
 		virtual AbstractLevelEntity* duplicate() = 0;
 
-		virtual void setDragOffset(double x, double y, bool snap);
+		virtual void setDragOffset(double x, double y, bool snap, double snapX, double snapY);
 
-		virtual void drag(double x, double y, bool snap);
+		virtual void drag(double x, double y, bool snap, double snapX, double snapY);
 		virtual bool canResize() const { return false; }
 
-		virtual void updateResize(int edges, int mouseX, int mouseY, bool snap);
+		virtual void updateResize(int edges, int mouseX, int mouseY, bool snap, double snapX, double snapY);
 		virtual void endResize() {};
 
 	};

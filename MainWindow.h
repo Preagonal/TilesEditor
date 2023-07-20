@@ -10,6 +10,7 @@
 #include "MainFileSystem.h"
 #include "RCConnection.h"
 
+
 namespace TilesEditor
 {
     class MainWindow : public QMainWindow
@@ -18,6 +19,7 @@ namespace TilesEditor
     private slots:
         void openFile(bool checked);
         void newLevel(bool checked);
+        void newCustomLevel(bool checked);
         void openLevel(const QString& levelName);
         void changeTabText(const QString& text);
         void setStatusText(const QString& text, int section, int msecs);

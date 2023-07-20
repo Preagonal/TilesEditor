@@ -10,21 +10,27 @@ message("You are running qmake on a generated .pro file. This may not work!")
 HEADERS += ./AbstractFileSystem.h \
     ./AbstractLevelEntity.h \
     ./AbstractSelection.h \
+    ./AbstractSpatialGridItem.h \
+    ./IFileRequester.h \
+    ./ILevelFormat.h \
     ./rc/RCConnectDialog.h \
     ./rc/ServerListDialog.h \
     ./rc/FileBrowserDialog.h \
     ./rc/RCConnection.h \
     ./rc/RCIODevice.h \
     ./rc/Server.h \
-    ./LevelGraalBaddy.h \
     ./LevelChest.h \
     ./LevelCommands.h \
+    ./LevelFactory.h \
+    ./LevelFormatGraal.h \
+    ./LevelFormatLVL.h \
+    ./FileFormatManager.h \
+    ./LevelFormatNW.h \
     ./LevelGraalBaddy.h \
     ./LevelLink.h \
     ./LevelNPC.h \
     ./LevelSign.h \
-    ./LevelFactory.h \
-    ./FixMapNamesDialog.h \
+    ./ObjectFactory.h \
     ./ObjectListModel.h \
     ./ObjectSelection.h \
     ./SelectionType.h \
@@ -64,6 +70,8 @@ HEADERS += ./AbstractFileSystem.h \
     ./EditTilesetDialog.h \
     ./EditChestDialog.h \
     ./EditBaddy.h \
+    ./FixMapNamesDialog.h \
+    ./ExternalNPCInspector.h \
     ./LevelConverter.h \
     ./ListLinksDialog.h \
     ./NewOverworldDialog.h \
@@ -85,7 +93,7 @@ HEADERS += ./AbstractFileSystem.h \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorHighlighter.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorLineWidget.hpp \
     ./QCodeEditor/include/KGL/Widgets/QCodeEditorPopup.hpp \
-    ./IFileRequester.h
+    ./NewLevelDialog.h
 SOURCES += ./AboutDialog.cpp \
     ./rc/RCConnectDialog.cpp \
     ./AbstractLevelEntity.cpp \
@@ -103,6 +111,9 @@ SOURCES += ./AboutDialog.cpp \
     ./EditorTabWidget.cpp \
     ./EditSignsDialog.cpp \
     ./EditTilesetDialog.cpp \
+    ./ExternalNPCInspector.cpp \
+    ./FileFormatManager.cpp \
+    ./FixMapNamesDialog.cpp \
     ./GraphicsView.cpp \
     ./Image.cpp \
     ./ImageDimensions.cpp \
@@ -111,6 +122,9 @@ SOURCES += ./AboutDialog.cpp \
     ./LevelChest.cpp \
     ./LevelCommands.cpp \
     ./LevelConverter.cpp \
+    ./LevelFormatGraal.cpp \
+    ./LevelFormatLVL.cpp \
+    ./LevelFormatNW.cpp \
     ./LevelGraalBaddy.cpp \
     ./LevelLink.cpp \
     ./LevelNPC.cpp \
@@ -119,6 +133,7 @@ SOURCES += ./AboutDialog.cpp \
     ./ListLinksDialog.cpp \
     ./MainFileSystem.cpp \
     ./NewOverworldDialog.cpp \
+    ./ObjectFactory.cpp \
     ./ObjectListModel.cpp \
     ./ObjectSelection.cpp \
     ./ObjectsWidget.cpp \
@@ -134,7 +149,6 @@ SOURCES += ./AboutDialog.cpp \
     ./TileSelection.cpp \
     ./Tileset.cpp \
     ./TilesetsWidget.cpp \
-    ./EntitySpatialGrid.cpp \
     ./MainWindow.cpp \
     ./main.cpp \
     ./cJSON/cJSON.c \
@@ -148,7 +162,8 @@ SOURCES += ./AboutDialog.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorHighlighter.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorLineWidget.cpp \
     ./QCodeEditor/src/Widgets/QCodeEditorPopup.cpp \
-    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp
+    ./QCodeEditor/src/Widgets/QCodeEditorSlots.cpp \
+    ./NewLevelDialog.cpp
 FORMS += ./AboutDialog.ui \
     ./rc/RCConnectDialog.ui \
     ./rc/ServerListDialog.ui \
@@ -162,6 +177,8 @@ FORMS += ./AboutDialog.ui \
     ./EditSignsDialog.ui \
     ./FixMapNamesDialog.ui \
     ./EditTilesetDialog.ui \
+    ./ExternalNPCInspector.ui \
+    ./FixMapNamesDialog.ui \
     ./LevelConverter.ui \
     ./ListLinksDialog.ui \
     ./MainWindow.ui \
@@ -170,5 +187,6 @@ FORMS += ./AboutDialog.ui \
     ./SaveOverworldDialog.ui \
     ./ScreenshotDialog.ui \
     ./TileObjectsWidget.ui \
-    ./TilesetsWidget.ui
+    ./TilesetsWidget.ui \
+    ./NewLevelDialog.ui
 RESOURCES += MainWindow.qrc
