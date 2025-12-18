@@ -348,6 +348,7 @@ namespace TilesEditor
 
 
 						b.addButton("New Sprite Index", QMessageBox::ButtonRole::ActionRole);
+						b.addButton("Overwrite", QMessageBox::ButtonRole::AcceptRole);
 						b.addButton("Skip", QMessageBox::ButtonRole::RejectRole);
 
 
@@ -368,11 +369,19 @@ namespace TilesEditor
 					continue;
 				}
 
-				//New id
-				if (existsOption == QMessageBox::ButtonRole::ActionRole)
-					spriteIndex = m_editor->getAni().getNextSpriteIndex(true);
+			//New id
+			if (existsOption == QMessageBox::ButtonRole::ActionRole)
+				spriteIndex = m_editor->getAni().getNextSpriteIndex(true);
 
-				auto sprite = new Ani::AniSprite;
+			//Overwrite
+			if (existsOption == QMessageBox::ButtonRole::AcceptRole)
+			{
+				auto existingSprite = m_editor->getAni().getAniSprite(spriteIndex, "");
+				if (existingSprite)
+					new UndoCommandDeleteSprite(m_editor, existingSprite, m_resourceManager, undoCommand);
+			}
+
+			auto sprite = new Ani::AniSprite;
 				sprite->index = spriteIndex;
 
 				sprite->comment = count == 1 ? ui.commentLineEdit->text() :  QString("%1 (%2, %3)").arg(ui.commentLineEdit->text()).arg(column).arg(row);
