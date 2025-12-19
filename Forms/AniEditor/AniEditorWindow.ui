@@ -73,6 +73,7 @@
    <addaction name="actionSetWorkingDirectory"/>
    <addaction name="separator"/>
    <addaction name="actionBackgroundColor"/>
+   <addaction name="actionSwapKeys"/>
    <addaction name="separator"/>
    <addaction name="actionCloseAll"/>
   </widget>
@@ -189,6 +190,27 @@
    </property>
    <property name="toolTip">
     <string>Set Background Color</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSwapKeys">
+   <property name="icon">
+    <iconset resource="../../Resources/MainWindow.qrc">
+     <normaloff>:/MainWindow/icons/tinycolor/icons8-change-16.png</normaloff>:/MainWindow/icons/tinycolor/icons8-change-16.png</iconset>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="iconText">
+    <string notr="true"/>
+   </property>
+   <property name="text">
+    <string notr="true"/>
+   </property>
+   <property name="toolTip">
+    <string>Swap WASD/Arrow Keys (WASD=Direction, Arrows=Move)</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

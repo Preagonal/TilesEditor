@@ -23,6 +23,7 @@ namespace TilesEditor
 		void actionSaveAllClicked(bool checked);
 		void actionCloseAllClicked(bool checked);
 		void actionSetBackgroundColour(bool checked);
+		void actionSwapKeysToggled(bool checked);
 
 		void actionSetWorkingDirectoryClicked(bool checked);
 		void tabClose(int index);
@@ -50,6 +51,7 @@ namespace TilesEditor
 		QSettings& m_settings;
 		QColor m_backgroundColor = QColorConstants::DarkGreen;
 		ResourceManagerFileSystem* m_resourceManager;
+		bool m_keysSwapped = false;
 
 		QMenu m_menuThemes;
 		QActionGroup* m_menuThemesGroup;
