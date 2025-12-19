@@ -1835,17 +1835,24 @@ namespace TilesEditor
 				auto rect = m_tilesSelector.getSelection();
 				if (rect.intersects(QRectF(pos.x(), pos.y(), 1, 1)))
 				{
-					auto hcount = int(rect.width() / 16);
-					auto vcount = int(rect.height() / 16);
-					auto tileSelection = new TileSelection(-1000000, -1000000, hcount, vcount, m_selectedTilesLayer);
+				auto hcount = int(rect.width() / 16);
+				auto vcount = int(rect.height() / 16);
+				auto tileSelection = new TileSelection(-1000000, -1000000, hcount, vcount, m_selectedTilesLayer);
 
-					if(hcount == 1 && vcount == 1)
-						tileSelection->setDragOffset(tileSelection->getX(), tileSelection->getY(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
-					else tileSelection->setDragOffset(tileSelection->getX() + std::floor(pos.x() / getUnitWidth()) * getUnitWidth() - rect.x(), tileSelection->getY() + std::floor(pos.y() / getUnitHeight()) * getUnitHeight() - rect.y(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
-
+				if(hcount == 1 && vcount == 1)
+					tileSelection->setDragOffset(tileSelection->getX(), tileSelection->getY(), !QGuiApplication::keyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier), getSnapX(), getSnapY());
+				else
+				{
+					auto clickTileX = int(std::floor(pos.x() / 16.0));
+					auto clickTileY = int(std::floor(pos.y() / 16.0));
+					auto rectTileX = int(std::floor(rect.x() / 16.0));
+					auto rectTileY = int(std::floor(rect.y() / 16.0));
+					auto offsetTileX = clickTileX - rectTileX;
+					auto offsetTileY = clickTileY - rectTileY;
+					tileSelection->setDragOffset(tileSelection->getX() + (offsetTileX * 16.0), tileSelection->getY() + (offsetTileY * 16.0), false, getSnapX(), getSnapY());
+				}
 					tileSelection->setApplyTranslucency(true);
 					tileSelection->setMouseDragButton(Qt::MouseButton::LeftButton);
-
 					for (int y = 0; y < vcount; ++y)
 					{
 						for (int x = 0; x < hcount; ++x)

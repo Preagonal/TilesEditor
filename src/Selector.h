@@ -19,6 +19,9 @@ namespace TilesEditor
 
         qreal   m_snapX = 0.0,
             m_snapY = 0.0;
+            
+        int m_startTileX = 0,
+            m_startTileY = 0;
 
         bool    m_selecting = false;
         bool    m_visible = false;
@@ -42,27 +45,33 @@ namespace TilesEditor
         {
             m_snapX = snapX;
             m_snapY = snapY;
-
-
-            m_x1 = qFloor(x / snapX) * snapX;
-            m_y1 = qFloor(y / snapY) * snapY;
-
+            m_startTileX = qFloor(x / snapX);
+            m_startTileY = qFloor(y / snapY);
+            m_x1 = m_startTileX * snapX;
+            m_y1 = m_startTileY * snapY;
             m_x2 = m_x1 + snapX;
             m_y2 = m_y1 + snapY;
             m_selecting = true;
-
-
         }
 
         void updateSelection(float x, float y)
         {
-            if (x > m_x1)
-                m_x2 = qCeil(x / m_snapX) * m_snapX;
-            else m_x2 = qFloor(x / m_snapX) * m_snapX;
-
-            if (y > m_y1)
-                m_y2 = qCeil(y / m_snapY) * m_snapY;
-            else m_y2 = qFloor(y / m_snapY) * m_snapY;
+            auto currentTileX = qFloor(x / m_snapX);
+            auto currentTileY = qFloor(y / m_snapY);
+            if (currentTileX >= m_startTileX) {
+                m_x1 = m_startTileX * m_snapX;
+                m_x2 = (currentTileX + 1) * m_snapX;
+            } else {
+                m_x1 = (m_startTileX + 1) * m_snapX;
+                m_x2 = currentTileX * m_snapX;
+            }
+            if (currentTileY >= m_startTileY) {
+                m_y1 = m_startTileY * m_snapY;
+                m_y2 = (currentTileY + 1) * m_snapY;
+            } else {
+                m_y1 = (m_startTileY + 1) * m_snapY;
+                m_y2 = currentTileY * m_snapY;
+            }
         }
 
         void endSelection(float x, float y)
