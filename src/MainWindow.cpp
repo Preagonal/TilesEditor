@@ -37,7 +37,14 @@ namespace TilesEditor
 
         initScriptEngine();
 
-        QString objectsFolder = "./objects/";
+        QString exeDir = QApplication::applicationDirPath();
+        QString rootDir = exeDir + "/";
+        if (settings.contains("TilesEditor/WorkingDirectory"))
+        {
+            rootDir = settings.value("TilesEditor/WorkingDirectory").toString();
+        }
+        
+        QString objectsFolder = QDir(exeDir).filePath("objects/");
         if (settings.contains("objectsFolder"))
         {
             objectsFolder = settings.value("objectsFolder").toString();
@@ -45,7 +52,7 @@ namespace TilesEditor
         }
 
         m_objectManager = new ObjectManager(ui.objectTree, objectsFolder);
-        m_resourceManager = new ResourceManagerFileSystem("./", m_objectManager);
+        m_resourceManager = new ResourceManagerFileSystem(rootDir, m_objectManager);
        
         m_resourceManager->incrementRef();
 
@@ -73,7 +80,7 @@ namespace TilesEditor
         EditAnonymousNPC::savedGeometry = settings.value("anonymousNPCGeometry").toByteArray();
         EditorObject::savedGeometry = settings.value("editorObjectGeometry").toByteArray();
 
-        m_resourceManager->addSearchDirRecursive("./", 4);
+        m_resourceManager->addSearchDirRecursive(m_resourceManager->getConnectionString(), 4);
 
         auto tilesets = settings.value("tilesets").toStringList();
         for (auto& tilesetName : tilesets)
@@ -93,6 +100,7 @@ namespace TilesEditor
         connect(ui.actionLevelConverter, &QAction::triggered, this, &MainWindow::levelConvert);
         connect(ui.actionActionAniEditor, &QAction::triggered, this, &MainWindow::actionLaunchAniEditor);
         connect(ui.actionCloseAll, &QAction::triggered, this, &MainWindow::actionCloseAll);
+        connect(ui.actionSetWorkingDirectory, &QAction::triggered, this, &MainWindow::actionSetWorkingDirectoryClicked);
         connect(ui.actionPreferences, &QAction::triggered, this, &MainWindow::preferencesClicked);
         
         connect(ui.levelsTab, &QTabWidget::currentChanged, this, &MainWindow::tabChanged);
@@ -306,7 +314,9 @@ namespace TilesEditor
         takeWidgetIntoDock(ui.tileObjectsContainer, nullptr);
         takeWidgetIntoDock(ui.objectsContainer, nullptr);
 
-        QSettings settings("settings.ini", QSettings::IniFormat);
+        QString exeDir = QApplication::applicationDirPath();
+        QString settingsPath = QDir(exeDir).filePath("settings.ini");
+        QSettings settings(settingsPath, QSettings::IniFormat);
 
         settings.setValue("geometry", this->saveGeometry());
 
@@ -350,7 +360,11 @@ namespace TilesEditor
         }
         settings.setValue("tiledefs", tileDefs);
         
-
+        QFileInfo fileInfo(exeDir + "/");
+        if (m_resourceManager->getConnectionString() == fileInfo.absoluteFilePath() + "/")
+            settings.remove("TilesEditor/WorkingDirectory");
+        else
+            settings.setValue("TilesEditor/WorkingDirectory", m_resourceManager->getConnectionString());
 
         auto jsonRoot = cJSON_CreateObject();
 
@@ -379,7 +393,8 @@ namespace TilesEditor
 
         auto tileObjectsText = cJSON_Print(jsonRoot);
 
-        QFile fileObjectsHandle("tileObjects.json");
+        QString tileObjectsPath = QDir(exeDir).filePath("tileObjects.json");
+        QFile fileObjectsHandle(tileObjectsPath);
         if (fileObjectsHandle.open(QIODeviceBase::WriteOnly | QIODeviceBase::Text))
         {
             QTextStream stream(&fileObjectsHandle);
@@ -888,7 +903,59 @@ namespace TilesEditor
         }
     }
 
-
+    void MainWindow::actionSetWorkingDirectoryClicked(bool checked)
+    {
+        auto folder = QFileDialog::getExistingDirectory(nullptr, "Select working directory (example, the graal.exe folder)", m_resourceManager->getConnectionString());
+        if (!folder.isEmpty())
+        {
+            m_resourceManager->setRootDir(folder);
+            m_resourceManager->addSearchDirRecursive(folder, 4);
+            
+            for (int i = 0; i < ui.levelsTab->count(); ++i)
+            {
+                auto tab = static_cast<EditorTabWidget*>(ui.levelsTab->widget(i));
+                if (tab && tab->getResourceManager()->getType() == "FileSystem")
+                {
+                    auto tabResourceManager = static_cast<ResourceManagerFileSystem*>(tab->getResourceManager());
+                    tabResourceManager->mergeResourceManager(m_resourceManager);
+                    tabResourceManager->addSearchDirRecursive(folder, 4);
+                    
+                    auto activeLevel = tab->getActiveLevel();
+                    if (activeLevel)
+                    {
+                        QSet<Level*> levels;
+                        if (activeLevel->getOverworld())
+                        {
+                            for (auto level : activeLevel->getOverworld()->getLevelList())
+                                levels.insert(level);
+                        }
+                        else
+                            levels.insert(activeLevel);
+                        
+                        for (auto level : levels)
+                        {
+                            auto& objects = level->getObjects();
+                            for (auto entity : objects)
+                            {
+                                entity->releaseResources();
+                                entity->loadResources();
+                            }
+                        }
+                        tab->redrawScene();
+                    }
+                }
+            }
+            
+            m_objectManager->mergeResourceManager(m_resourceManager);
+            
+            QString exeDir = QApplication::applicationDirPath();
+            QFileInfo fileInfo(exeDir + "/");
+            if (m_resourceManager->getConnectionString() == fileInfo.absoluteFilePath() + "/")
+                m_settings.remove("TilesEditor/WorkingDirectory");
+            else
+                m_settings.setValue("TilesEditor/WorkingDirectory", m_resourceManager->getConnectionString());
+        }
+    }
 
     void MainWindow::objectsFolderBrowseClicked(bool checked)
     {
@@ -1283,7 +1350,9 @@ namespace TilesEditor
     {
         static const QString base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-        QFile fileObjectsHandle("tileObjects.json");
+        QString exeDir = QApplication::applicationDirPath();
+        QString tileObjectsPath = QDir(exeDir).filePath("tileObjects.json");
+        QFile fileObjectsHandle(tileObjectsPath);
         if (fileObjectsHandle.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text))
         {
             QTextStream stream(&fileObjectsHandle);

@@ -71,6 +71,7 @@
    <addaction name="separator"/>
    <addaction name="actionLevelConverter"/>
    <addaction name="actionActionAniEditor"/>
+   <addaction name="actionSetWorkingDirectory"/>
    <addaction name="separator"/>
    <addaction name="actionPreferences"/>
    <addaction name="actionAbout"/>
@@ -429,6 +430,21 @@
    </property>
    <property name="text">
     <string>Close All</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSetWorkingDirectory">
+   <property name="icon">
+    <iconset resource="../Resources/MainWindow.qrc">
+     <normaloff>:/MainWindow/icons/tinycolor/icons8-pictures-folder-16.png</normaloff>:/MainWindow/icons/tinycolor/icons8-pictures-folder-16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set working directory</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Working Directory</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

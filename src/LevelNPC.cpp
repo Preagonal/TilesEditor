@@ -93,6 +93,7 @@ namespace TilesEditor
 		if (m_image)
 			getWorld()->getResourceManager()->freeResource(m_image);
 		m_image = nullptr;
+		m_loadImageFail = false;
 	}
 
 	void LevelNPC::draw(QPainter* painter, const QRectF& viewRect, double x, double y)

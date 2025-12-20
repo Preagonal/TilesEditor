@@ -37,6 +37,7 @@ namespace TilesEditor
         void levelConvert(bool checked);
         void preferencesClicked(bool checked);
 		void actionLaunchAniEditor(bool checked);
+		void actionSetWorkingDirectoryClicked(bool checked);
 
         void objectsFolderBrowseClicked(bool checked);
         void objectFolderExpanded(QTreeWidgetItem* item);

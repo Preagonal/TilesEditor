@@ -1,4 +1,5 @@
 #include <QFileInfo>
+#include <QDir>
 #include <QList>
 #include <QtWidgets/QApplication>
 #include <QImageReader>
@@ -46,7 +47,9 @@ void myMessageHandler(QtMsgType type, const QMessageLogContext&, const QString& 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QSettings settings("settings.ini", QSettings::IniFormat);
+    QString exeDir = QApplication::applicationDirPath();
+    QString settingsPath = QDir(exeDir).filePath("settings.ini");
+    QSettings settings(settingsPath, QSettings::IniFormat);
    // qInstallMessageHandler(myMessageHandler);
     QApplication::setStyle("fusion");
     QImageReader::setAllocationLimit(1024 * 4);
