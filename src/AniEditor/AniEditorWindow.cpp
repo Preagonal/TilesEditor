@@ -22,6 +22,7 @@ namespace TilesEditor
 		connect(ui.actionSaveAll, &QAction::triggered, this, &AniEditorWindow::actionSaveAllClicked);
 		connect(ui.actionCloseAll, &QAction::triggered, this, &AniEditorWindow::actionCloseAllClicked);
 		connect(ui.actionBackgroundColor, &QAction::triggered, this, &AniEditorWindow::actionSetBackgroundColour);
+		connect(ui.actionSwapKeys, &QAction::toggled, this, &AniEditorWindow::actionSwapKeysToggled);
 		connect(ui.actionSetWorkingDirectory, &QAction::triggered, this, &AniEditorWindow::actionSetWorkingDirectoryClicked);
 		connect(ui.tabWidgetMain, &QTabWidget::tabCloseRequested, this, &AniEditorWindow::tabClose);
 
@@ -74,6 +75,10 @@ namespace TilesEditor
 		if (m_settings.contains("GaniEditor/BackColor"))
 			m_backgroundColor = QColor::fromString(m_settings.value("GaniEditor/BackColor").toString());
 
+		if (m_settings.contains("GaniEditor/KeysSwapped"))
+			m_keysSwapped = m_settings.value("GaniEditor/KeysSwapped").toBool();
+		ui.actionSwapKeys->setChecked(m_keysSwapped);
+
 	}
 
 	void AniEditorWindow::actionNewClicked(bool checked)
@@ -82,6 +87,7 @@ namespace TilesEditor
 
 		auto editor = new AniEditor("", m_resourceManager, m_settings, currentEditorTab);
 		editor->setBackgroundColour(m_backgroundColor);
+		editor->setKeysSwapped(m_keysSwapped);
 
 		connect(editor, &AniEditor::changeTabText, this, &AniEditorWindow::changeTabText);
 		connect(editor, &AniEditor::setStatusText, this, &AniEditorWindow::setStatusText);
@@ -143,6 +149,18 @@ namespace TilesEditor
 		for (int i = ui.tabWidgetMain->count() - 1; i >= 0; --i)
 		{
 			closeTabIndex(i);
+		}
+	}
+
+	void AniEditorWindow::actionSwapKeysToggled(bool checked)
+	{
+		m_keysSwapped = checked;
+		m_settings.setValue("GaniEditor/KeysSwapped", checked);
+		for (int i = 0; i < ui.tabWidgetMain->count(); ++i)
+		{
+			auto editor = static_cast<AniEditor*>(ui.tabWidgetMain->widget(i));
+			if (editor)
+				editor->setKeysSwapped(checked);
 		}
 	}
 
@@ -270,6 +288,7 @@ namespace TilesEditor
 		auto currentEditorTab = static_cast<AniEditor*>(ui.tabWidgetMain->currentWidget());
 		auto retval = new AniEditor(fi.fileName(), m_resourceManager, m_settings, currentEditorTab);
 		retval->setBackgroundColour(m_backgroundColor);
+		retval->setKeysSwapped(m_keysSwapped);
 		connect(retval, &AniEditor::changeTabText, this, &AniEditorWindow::changeTabText);
 		connect(retval, &AniEditor::setStatusText, this, &AniEditorWindow::setStatusText);
 

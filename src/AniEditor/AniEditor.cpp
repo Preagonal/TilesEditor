@@ -279,40 +279,16 @@ namespace TilesEditor
 		ui.yLineEdit->setValidator(new QDoubleValidator(-1000000000, 1000000000, 2, ui.yLineEdit));
 		setSpritePreviewZoomLevel(4);
 
-		auto downKeyShortcut = new QShortcut(this);
-		downKeyShortcut->setKey(Qt::Key_Down);
-		connect(downKeyShortcut, &QShortcut::activated, this, &AniEditor::downKeyPressed);
+		m_downKeyShortcut = new QShortcut(this);
+		m_upKeyShortcut = new QShortcut(this);
+		m_leftKeyShortcut = new QShortcut(this);
+		m_rightKeyShortcut = new QShortcut(this);
+		m_sKeyShortCut = new QShortcut(this);
+		m_aKeyShortCut = new QShortcut(this);
+		m_dKeyShortCut = new QShortcut(this);
+		m_wKeyShortCut = new QShortcut(this);
 
-		auto upKeyShortcut = new QShortcut(this);
-		upKeyShortcut->setKey(Qt::Key_Up);
-		connect(upKeyShortcut, &QShortcut::activated, this, &AniEditor::upKeyPressed);
-
-		auto leftKeyShortcut = new QShortcut(this);
-		leftKeyShortcut->setKey(Qt::Key_Left);
-		connect(leftKeyShortcut, &QShortcut::activated, this, &AniEditor::leftKeyPressed);
-
-		auto rightKeyShortcut = new QShortcut(this);
-		rightKeyShortcut->setKey(Qt::Key_Right);
-		connect(rightKeyShortcut, &QShortcut::activated, this, &AniEditor::rightKeyPressed);
-
-
-		//Using QShortcut instead of the built-in shortcut in QAbstractButton since that's
-		//Too slow with the key-repeat
-		auto sKeyShortCut = new QShortcut(this);
-		sKeyShortCut->setKey(Qt::Key_S);
-		connect(sKeyShortCut, &QShortcut::activated, ui.itemDownButton, &QAbstractButton::click);
-
-		auto aKeyShortCut = new QShortcut(this);
-		aKeyShortCut->setKey(Qt::Key_A);
-		connect(aKeyShortCut, &QShortcut::activated, ui.itemLeftButton, &QAbstractButton::click);
-
-		auto dKeyShortCut = new QShortcut(this);
-		dKeyShortCut->setKey(Qt::Key_D);
-		connect(dKeyShortCut, &QShortcut::activated, ui.itemRightButton, &QAbstractButton::click);
-
-		auto wKeyShortCut = new QShortcut(this);
-		wKeyShortCut->setKey(Qt::Key_W);
-		connect(wKeyShortCut, &QShortcut::activated, ui.itemUpButton, &QAbstractButton::click);
+		setupKeyShortcuts();
 
 		applySettings(settings);
 
@@ -950,6 +926,86 @@ namespace TilesEditor
 	void AniEditor::rightKeyPressed()
 	{
 		ui.directionComboBox->setCurrentIndex(3);
+	}
+
+	void AniEditor::setupKeyShortcuts()
+	{
+		if (m_keysSwapped)
+		{
+			// WASD = Direction, Arrows = Move
+			m_wKeyShortCut->setKey(Qt::Key_W);
+			m_wKeyShortCut->disconnect();
+			connect(m_wKeyShortCut, &QShortcut::activated, this, &AniEditor::upKeyPressed);
+
+			m_aKeyShortCut->setKey(Qt::Key_A);
+			m_aKeyShortCut->disconnect();
+			connect(m_aKeyShortCut, &QShortcut::activated, this, &AniEditor::leftKeyPressed);
+
+			m_sKeyShortCut->setKey(Qt::Key_S);
+			m_sKeyShortCut->disconnect();
+			connect(m_sKeyShortCut, &QShortcut::activated, this, &AniEditor::downKeyPressed);
+
+			m_dKeyShortCut->setKey(Qt::Key_D);
+			m_dKeyShortCut->disconnect();
+			connect(m_dKeyShortCut, &QShortcut::activated, this, &AniEditor::rightKeyPressed);
+
+			m_upKeyShortcut->setKey(Qt::Key_Up);
+			m_upKeyShortcut->disconnect();
+			connect(m_upKeyShortcut, &QShortcut::activated, ui.itemUpButton, &QAbstractButton::click);
+
+			m_leftKeyShortcut->setKey(Qt::Key_Left);
+			m_leftKeyShortcut->disconnect();
+			connect(m_leftKeyShortcut, &QShortcut::activated, ui.itemLeftButton, &QAbstractButton::click);
+
+			m_downKeyShortcut->setKey(Qt::Key_Down);
+			m_downKeyShortcut->disconnect();
+			connect(m_downKeyShortcut, &QShortcut::activated, ui.itemDownButton, &QAbstractButton::click);
+
+			m_rightKeyShortcut->setKey(Qt::Key_Right);
+			m_rightKeyShortcut->disconnect();
+			connect(m_rightKeyShortcut, &QShortcut::activated, ui.itemRightButton, &QAbstractButton::click);
+		}
+		else
+		{
+			// Arrows = Direction, WASD = Move (default)
+			m_upKeyShortcut->setKey(Qt::Key_Up);
+			m_upKeyShortcut->disconnect();
+			connect(m_upKeyShortcut, &QShortcut::activated, this, &AniEditor::upKeyPressed);
+
+			m_leftKeyShortcut->setKey(Qt::Key_Left);
+			m_leftKeyShortcut->disconnect();
+			connect(m_leftKeyShortcut, &QShortcut::activated, this, &AniEditor::leftKeyPressed);
+
+			m_downKeyShortcut->setKey(Qt::Key_Down);
+			m_downKeyShortcut->disconnect();
+			connect(m_downKeyShortcut, &QShortcut::activated, this, &AniEditor::downKeyPressed);
+
+			m_rightKeyShortcut->setKey(Qt::Key_Right);
+			m_rightKeyShortcut->disconnect();
+			connect(m_rightKeyShortcut, &QShortcut::activated, this, &AniEditor::rightKeyPressed);
+
+			m_wKeyShortCut->setKey(Qt::Key_W);
+			m_wKeyShortCut->disconnect();
+			connect(m_wKeyShortCut, &QShortcut::activated, ui.itemUpButton, &QAbstractButton::click);
+
+			m_aKeyShortCut->setKey(Qt::Key_A);
+			m_aKeyShortCut->disconnect();
+			connect(m_aKeyShortCut, &QShortcut::activated, ui.itemLeftButton, &QAbstractButton::click);
+
+			m_sKeyShortCut->setKey(Qt::Key_S);
+			m_sKeyShortCut->disconnect();
+			connect(m_sKeyShortCut, &QShortcut::activated, ui.itemDownButton, &QAbstractButton::click);
+
+			m_dKeyShortCut->setKey(Qt::Key_D);
+			m_dKeyShortCut->disconnect();
+			connect(m_dKeyShortCut, &QShortcut::activated, ui.itemRightButton, &QAbstractButton::click);
+		}
+	}
+
+	void AniEditor::setKeysSwapped(bool swapped)
+	{
+		m_keysSwapped = swapped;
+		setupKeyShortcuts();
 	}
 
 	void AniEditor::updateItemSettings()

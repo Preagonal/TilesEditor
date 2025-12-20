@@ -154,8 +154,18 @@ namespace TilesEditor
 		QPixmap m_downRightPix;
 		
 		QUndoStack m_undoStack;
+		bool m_keysSwapped = false;
+		QShortcut* m_downKeyShortcut = nullptr;
+		QShortcut* m_upKeyShortcut = nullptr;
+		QShortcut* m_leftKeyShortcut = nullptr;
+		QShortcut* m_rightKeyShortcut = nullptr;
+		QShortcut* m_sKeyShortCut = nullptr;
+		QShortcut* m_aKeyShortCut = nullptr;
+		QShortcut* m_dKeyShortCut = nullptr;
+		QShortcut* m_wKeyShortCut = nullptr;
 
 		void updateFrame();
+		void setupKeyShortcuts();
 		qsizetype addFramePieceToItems(Ani::Frame::FramePiece * piece);
 		
 		void deleteSelectedFrame();
@@ -209,6 +219,7 @@ namespace TilesEditor
 		void removeFrame(qsizetype index) override;
 		void insertFrame(qsizetype index, Ani::Frame* frame) override;
 		void setSelectedPieces(const QList<Ani::Frame::FramePiece*>& pieces) override;
+		void setKeysSwapped(bool swapped);
 	};
 }
 
