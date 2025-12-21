@@ -2521,44 +2521,74 @@ namespace TilesEditor
 			return;
 		}
 
-		//Check if the tile position of the mouse has changed
-		if (oldTileXPos != tileXPos || oldTileYPos != tileYPos)
+		auto level = getLevelAt(pos);
+		bool shouldUpdateStatusBar = (oldTileXPos != tileXPos || oldTileYPos != tileYPos) || m_selector.selecting();
+		
+		if (shouldUpdateStatusBar && level)
 		{
-			auto level = getLevelAt(pos);
-			if (level)
+			auto tilemapX = int((pos.x() - level->getX()) / level->getTileWidth());
+			auto tilemapY = int((pos.y() - level->getY()) / level->getTileHeight());
+
+			QString displayTile = "";
+			auto tileMap = level->getTilemap(m_selectedTilesLayer);
+			if (tileMap)
 			{
-				auto tilemapX = int((pos.x() - level->getX()) / level->getTileWidth());
-				auto tilemapY = int((pos.y() - level->getY()) / level->getTileHeight());
+				auto tile = tileMap->getTile(tilemapX, tilemapY);
 
-				QString displayTile = "";
-				auto tileMap = level->getTilemap(m_selectedTilesLayer);
-				if (tileMap)
-				{
-					auto tile = tileMap->getTile(tilemapX, tilemapY);
+				if (!Tilemap::IsInvisibleTile(tile))
+					displayTile = level->getDisplayTile(tile);
+				else displayTile = "";
+			}
 
-					if (!Tilemap::IsInvisibleTile(tile))
-						displayTile = level->getDisplayTile(tile);
-					else displayTile = "";
-				}
+			auto tileX = (std::floor(pos.x() / level->getTileWidth()) * level->getTileWidth()) / getUnitWidth();
+			auto tileY = (std::floor(pos.y() / level->getTileHeight()) * level->getTileHeight()) / getUnitHeight();
+			auto localTileX = (std::floor((pos.x() - level->getX()) / level->getTileWidth()) * level->getTileWidth()) / getUnitWidth();
+			auto localTileY = (std::floor((pos.y() - level->getY()) / level->getTileHeight()) * level->getTileHeight()) / getUnitHeight();
 
-				auto tileX = (std::floor(pos.x() / level->getTileWidth()) * level->getTileWidth()) / getUnitWidth();
-				auto tileY = (std::floor(pos.y() / level->getTileHeight()) * level->getTileHeight()) / getUnitHeight();
-				auto localTileX = (std::floor((pos.x() - level->getX()) / level->getTileWidth()) * level->getTileWidth()) / getUnitWidth();
-				auto localTileY = (std::floor((pos.y() - level->getY()) / level->getTileHeight()) * level->getTileHeight()) / getUnitHeight();
+			QString result;
+			QRectF selectionRect;
+			bool hasSelection = false;
+			if (m_selector.visible())
+			{
+				selectionRect = m_selector.getSelection();
+				hasSelection = true;
+			}
+			else if (m_selection && m_selection->getSelectionType() == SelectionType::SELECTION_TILES)
+			{
+				auto tileSelection = static_cast<TileSelection*>(m_selection);
+				selectionRect = QRectF(tileSelection->getX(), tileSelection->getY(), tileSelection->getWidth(), tileSelection->getHeight());
+				hasSelection = true;
+			}
+
+			if (hasSelection)
+			{
+				auto startTileX = int(std::floor(selectionRect.x() / 16.0));
+				auto startTileY = int(std::floor(selectionRect.y() / 16.0));
+				auto widthTiles = int(selectionRect.width() / 16.0);
+				auto heightTiles = int(selectionRect.height() / 16.0);
+				auto endTileX = startTileX + widthTiles;
+				auto endTileY = startTileY + heightTiles;
 
 				if (m_overworld)
 				{
-					QString result;
-					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " (" << localTileX << ", " << localTileY << ", " << level->getName() << ") Tile: " << displayTile;
-					emit setStatusBar(result, 0, 20000);
+					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " (" << localTileX << ", " << localTileY << ", " << level->getName() << ") Tile: " << displayTile << " | Selection: (" << startTileX << ", " << startTileY << ") -> (" << endTileX << ", " << endTileY << ") = (" << widthTiles << ", " << heightTiles << ")";
 				}
-				else {
-					QString result;
-					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " Tile: " << displayTile;
-					emit setStatusBar(result, 0, 20000);
+				else
+				{
+					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " Tile: " << displayTile << " | Selection: (" << startTileX << ", " << startTileY << ") -> (" << endTileX << ", " << endTileY << ") = (" << widthTiles << ", " << heightTiles << ")";
 				}
 			}
-
+			else
+			{
+				if (m_overworld)
+				{
+					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " (" << localTileX << ", " << localTileY << ", " << level->getName() << ") Tile: " << displayTile;
+				}
+				else {
+					QTextStream(&result) << "Mouse: " << tileX << ", " << tileY << " Tile: " << displayTile;
+				}
+			}
+			emit setStatusBar(result, 0, 20000);
 		}
 
 		if (m_selection)
